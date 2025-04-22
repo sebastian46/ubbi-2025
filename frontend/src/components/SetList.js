@@ -57,10 +57,8 @@ const theme = {
     tag: {
       base: 'inline-block px-2 py-0.5 rounded text-xs'
     },
-    header: {
-      day: 'mb-4 custom-day-header',
-      dayText: 'font-bold text-white relative z-10 text-lg',
-      time: 'sticky-time-header'
+    time: {
+      header: 'sticky-time-header'
     }
   }
 };
@@ -84,13 +82,73 @@ function SetList({ userId }) {
   const [viewMode, setViewMode] = useState('stage'); // 'stage' or 'time'
   const [timeSlots, setTimeSlots] = useState([]);
   const [attendeeCounts, setAttendeeCounts] = useState({});
+  const [festivalDays, setFestivalDays] = useState([]);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [cachedSetsByDay, setCachedSetsByDay] = useState({});
+  const [cachedSelectionsByDay, setCachedSelectionsByDay] = useState({});
 
+  // Fetch festival days on initial load
+  useEffect(() => {
+    const fetchFestivalDays = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/festival-days`);
+        console.log('Festival days:', response.data);
+        
+        if (response.data.length > 0) {
+          setFestivalDays(response.data);
+          // Set the first day as selected by default
+          setSelectedDay(response.data[0].date);
+        }
+        setInitialLoading(false);
+      } catch (error) {
+        console.error('Error fetching festival days:', error);
+        setError('Failed to load festival days');
+        setInitialLoading(false);
+      }
+    };
+
+    fetchFestivalDays();
+  }, []);
+
+  // Fetch sets and user selections when selectedDay changes
   useEffect(() => {
     const fetchData = async () => {
+      if (!selectedDay) return;
+      
+      // Check if we already have cached data for this day
+      if (cachedSetsByDay[selectedDay] && cachedSelectionsByDay[selectedDay]) {
+        console.log('Using cached data for', selectedDay);
+        setSets(cachedSetsByDay[selectedDay]);
+        setUserSelections(cachedSelectionsByDay[selectedDay]);
+        
+        // Set the first stage as active by default
+        if (cachedSetsByDay[selectedDay].length > 0) {
+          const stages = [...new Set(cachedSetsByDay[selectedDay].map(set => set.stage))];
+          
+          if (stages.length > 0) {
+            setActiveStage(stages[0]);
+          }
+          
+          // Generate time slots
+          const uniqueTimes = [...new Set(cachedSetsByDay[selectedDay].map(set => set.start_time))];
+          const sortedTimes = uniqueTimes.sort((a, b) => new Date(a) - new Date(b));
+          setTimeSlots(sortedTimes);
+        }
+        
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
       try {
         const [setsResponse, selectionsResponse] = await Promise.all([
-          axios.get(`${API_URL}/sets`),
-          axios.get(`${API_URL}/users/${userId}/selections`)
+          axios.get(`${API_URL}/sets`, { 
+            params: { date: selectedDay } 
+          }),
+          axios.get(`${API_URL}/users/${userId}/selections`, { 
+            params: { date: selectedDay } 
+          })
         ]);
         
         // Log the raw response data
@@ -106,6 +164,17 @@ function SetList({ userId }) {
           // If same stage, compare by start time
           return new Date(a.start_time) - new Date(b.start_time);
         });
+        
+        // Cache the data
+        setCachedSetsByDay(prev => ({
+          ...prev,
+          [selectedDay]: sortedSets
+        }));
+        
+        setCachedSelectionsByDay(prev => ({
+          ...prev,
+          [selectedDay]: selectionsResponse.data
+        }));
         
         setSets(sortedSets);
         setUserSelections(selectionsResponse.data);
@@ -154,8 +223,10 @@ function SetList({ userId }) {
       }
     };
 
-    fetchData();
-  }, [userId]);
+    if (!initialLoading) {
+      fetchData();
+    }
+  }, [selectedDay, userId, initialLoading, cachedSetsByDay, cachedSelectionsByDay]);
 
   // Clear feedback message after 3 seconds
   useEffect(() => {
@@ -180,7 +251,18 @@ function SetList({ userId }) {
       if (isSelected(setId)) {
         // Directly remove the selection without confirmation
         await axios.delete(`${API_URL}/users/${userId}/selections/${setId}`);
+        
+        // Update local state
         setUserSelections(userSelections.filter(selection => selection.id !== setId));
+        
+        // Update cache
+        if (selectedDay) {
+          setCachedSelectionsByDay(prev => ({
+            ...prev,
+            [selectedDay]: prev[selectedDay]?.filter(selection => selection.id !== setId) || []
+          }));
+        }
+        
         setActionFeedback({
           type: 'success',
           message: 'Removed from your schedule'
@@ -200,7 +282,18 @@ function SetList({ userId }) {
         // Add selection
         await axios.post(`${API_URL}/selections`, { user_id: userId, set_id: setId });
         const setData = sets.find(s => s.id === setId);
+        
+        // Update local state
         setUserSelections([...userSelections, setData]);
+        
+        // Update cache
+        if (selectedDay && setData) {
+          setCachedSelectionsByDay(prev => ({
+            ...prev,
+            [selectedDay]: [...(prev[selectedDay] || []), setData]
+          }));
+        }
+        
         setActionFeedback({
           type: 'success', 
           message: 'Added to your schedule'
@@ -268,6 +361,10 @@ function SetList({ userId }) {
     setViewMode(mode);
   };
 
+  const handleDaySelect = (date) => {
+    setSelectedDay(date);
+  };
+
   // Format datetime string to readable format
   const formatDateTime = (dateTimeStr) => {
     const date = new Date(dateTimeStr);
@@ -289,18 +386,6 @@ function SetList({ userId }) {
     });
   };
 
-  // Format date to show event day (April 26 = Day 1, April 27 = Day 2)
-  const formatEventDay = (dateTimeStr) => {
-    const date = new Date(dateTimeStr);
-    const eventStart = new Date(2025, 3, 26); // April 26, 2025 (months are 0-indexed)
-    
-    // Calculate day number (1-based)
-    const diffTime = date.getTime() - eventStart.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    
-    return `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}, Day ${diffDays}`;
-  };
-
   // Format time range (start to end)
   const formatTimeRange = (startTimeStr, endTimeStr) => {
     const startDate = new Date(startTimeStr);
@@ -318,29 +403,6 @@ function SetList({ userId }) {
   const getFilteredSets = () => {
     if (!activeStage) return [];
     return sets.filter(set => set.stage === activeStage);
-  };
-
-  // Group sets by day
-  const getSetsByDay = (sets) => {
-    const setsByDay = {};
-    
-    sets.forEach(set => {
-      const date = new Date(set.start_time);
-      const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-      
-      if (!setsByDay[dayKey]) {
-        setsByDay[dayKey] = [];
-      }
-      
-      setsByDay[dayKey].push(set);
-    });
-    
-    // Sort each day's sets by start time
-    Object.keys(setsByDay).forEach(day => {
-      setsByDay[day].sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
-    });
-    
-    return setsByDay;
   };
 
   // Get sets organized by time
@@ -371,56 +433,7 @@ function SetList({ userId }) {
     return setsByTime;
   };
 
-  // Get sets organized by time, grouped by day
-  const getSetsByTimeAndDay = () => {
-    // First group by day
-    const setsByDay = {};
-    
-    sets.forEach(set => {
-      const date = new Date(set.start_time);
-      const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-      
-      if (!setsByDay[dayKey]) {
-        setsByDay[dayKey] = {
-          dayLabel: formatEventDay(set.start_time),
-          timeSlots: {}
-        };
-      }
-      
-      // Then within each day, group by time slot
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      const timeKey = `${hours}:${minutes}`;
-      
-      if (!setsByDay[dayKey].timeSlots[timeKey]) {
-        setsByDay[dayKey].timeSlots[timeKey] = {
-          time: set.start_time,
-          sets: []
-        };
-      }
-      
-      setsByDay[dayKey].timeSlots[timeKey].sets.push(set);
-    });
-    
-    // Sort timeSlots within each day
-    Object.keys(setsByDay).forEach(dayKey => {
-      const day = setsByDay[dayKey];
-      day.sortedTimeSlots = Object.values(day.timeSlots).sort((a, b) => 
-        new Date(a.time) - new Date(b.time)
-      );
-    });
-    
-    // Sort days
-    const sortedDays = Object.keys(setsByDay)
-      .sort()
-      .map(dayKey => ({
-        key: dayKey,
-        ...setsByDay[dayKey]
-      }));
-    
-    return sortedDays;
-  };
-
+  if (initialLoading) return <div className="text-center py-4">Loading festival days...</div>;
   if (loading) return <div className="text-center py-4">Loading sets...</div>;
   if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
 
@@ -636,8 +649,6 @@ function SetList({ userId }) {
   const stages = getStages();
   const filteredSets = getFilteredSets();
   const setsByTime = getSetsByTime();
-  const setsByDay = getSetsByDay(filteredSets);
-  const setsByTimeAndDay = getSetsByTimeAndDay();
 
   return (
     <div>
@@ -663,31 +674,63 @@ function SetList({ userId }) {
         />
       )}
       
-      {/* View toggle */}
-      <div className="flex justify-center mb-4">
-        <div className="inline-flex rounded-md shadow-sm" role="group">
-          <button
-            onClick={() => toggleViewMode('stage')}
-            className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
-              viewMode === 'stage' 
-                ? theme.colors.primary.standard
-                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-            }`}
-          >
-            By Stage
-          </button>
-          <button
-            onClick={() => toggleViewMode('time')}
-            className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
-              viewMode === 'time' 
-                ? theme.colors.primary.standard
-                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
-            }`}
-          >
-            By Time
-          </button>
+      {/* Integrated navigation controls */}
+      {festivalDays.length > 0 && (
+        <div className="mb-4">
+          <div className="flex flex-wrap justify-between items-center gap-2">
+            {/* Day selector as pills */}
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              {festivalDays.map(day => {
+                // Extract just the weekday name from the label
+                const weekdayName = day.label.split(',')[0];
+                return (
+                  <button
+                    key={day.date}
+                    onClick={() => handleDaySelect(day.date)}
+                    className={`px-4 py-2 text-sm font-medium ${
+                      festivalDays.indexOf(day) === 0 ? 'rounded-l-lg' : ''
+                    } ${
+                      festivalDays.indexOf(day) === festivalDays.length - 1 ? 'rounded-r-lg' : ''
+                    } ${
+                      selectedDay === day.date
+                        ? theme.colors.primary.standard
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    } ${
+                      festivalDays.indexOf(day) > 0 ? 'border-l-0' : ''
+                    }`}
+                  >
+                    {weekdayName}
+                  </button>
+                );
+              })}
+            </div>
+            
+            {/* View toggle as pills */}
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              <button
+                onClick={() => toggleViewMode('stage')}
+                className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                  viewMode === 'stage' 
+                    ? theme.colors.primary.standard
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                }`}
+              >
+                By Stage
+              </button>
+              <button
+                onClick={() => toggleViewMode('time')}
+                className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                  viewMode === 'time' 
+                    ? theme.colors.primary.standard
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
+                }`}
+              >
+                By Time
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Stage selector tabs - only show in stage view */}
       {viewMode === 'stage' && (
@@ -711,71 +754,59 @@ function SetList({ userId }) {
       )}
       
       {sets.length === 0 ? (
-        <p className="text-sm text-gray-500">No sets available yet.</p>
+        <p className="text-sm text-gray-500">No sets available for this day.</p>
       ) : viewMode === 'stage' ? (
         // Stage view
         filteredSets.length === 0 ? (
           <p className="text-sm text-gray-500">No sets for {activeStage}.</p>
         ) : (
           <>
-            {Object.entries(setsByDay).map(([dayKey, daySets], dayIndex) => (
-              <div key={dayKey} className={dayIndex > 0 ? "mt-8" : ""}>
-                {/* Date/Day Header */}
-                <div className={theme.components.header.day}>
-                  <h3 className={theme.components.header.dayText}>
-                    {formatEventDay(daySets[0].start_time)}
-                  </h3>
+            {/* Mobile view - 2 artists per row */}
+            <div className="grid grid-cols-2 gap-2 sm:hidden">
+              {filteredSets.map(set => (
+                <div key={set.id}>
+                  {renderArtistCard(set)}
                 </div>
-                
-                {/* Mobile view - 2 artists per row */}
-                <div className="grid grid-cols-2 gap-2 sm:hidden">
-                  {daySets.map(set => renderArtistCard(set))}
+              ))}
+            </div>
+            
+            {/* Tablet and desktop view */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-3">
+              {filteredSets.map(set => (
+                <div key={set.id}>
+                  {renderDesktopCard(set)}
                 </div>
-                
-                {/* Tablet and desktop view */}
-                <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-3">
-                  {daySets.map(set => renderDesktopCard(set))}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </>
         )
       ) : (
         // Time view
         <div>
-          {setsByTimeAndDay.length === 0 ? (
-            <p className="p-4 text-sm text-gray-500">No scheduled sets found.</p>
+          {Object.keys(setsByTime).length === 0 ? (
+            <p className="p-4 text-sm text-gray-500">No scheduled sets found for this day.</p>
           ) : (
-            setsByTimeAndDay.map((day, dayIndex) => (
-              <div key={day.key} className={dayIndex > 0 ? "mt-8" : ""}>
-                {/* Date/Day Header */}
-                <div className={theme.components.header.day}>
-                  <h3 className={theme.components.header.dayText}>
-                    {day.dayLabel}
-                  </h3>
-                </div>
-                
-                <div className="bg-white rounded-lg shadow">
-                  {day.sortedTimeSlots.map((timeSlot, timeIndex) => (
-                    <div key={timeSlot.time} className={timeIndex > 0 ? "mt-4" : ""}>
-                      <div className={theme.components.header.time}>
-                        {formatTimeOnly(timeSlot.time)}
-                      </div>
-                      <div className="border-l border-r border-gray-200 rounded-b-lg overflow-hidden">
-                        {timeSlot.sets.map((set, setIndex) => {
-                          const attendeesCount = attendeeCounts[set.id] || 0;
-                          return (
-                            <div key={set.id} className={setIndex > 0 ? "border-t border-gray-200" : ""}>
-                              {renderTimeListItem(set, attendeesCount)}
-                            </div>
-                          );
-                        })}
-                      </div>
+            <div className="bg-white rounded-lg shadow">
+              {Object.entries(setsByTime)
+                .sort(([timeA], [timeB]) => new Date(timeA) - new Date(timeB))
+                .map(([timeSlot, setsAtTime], timeIndex) => (
+                  <div key={timeSlot} className={timeIndex > 0 ? "mt-4" : ""}>
+                    <div className={theme.components.time.header}>
+                      {formatTimeOnly(timeSlot)}
                     </div>
-                  ))}
-                </div>
-              </div>
-            ))
+                    <div className="border-l border-r border-gray-200 rounded-b-lg overflow-hidden">
+                      {setsAtTime.map((set, setIndex) => {
+                        const attendeesCount = attendeeCounts[set.id] || 0;
+                        return (
+                          <div key={set.id} className={setIndex > 0 ? "border-t border-gray-200" : ""}>
+                            {renderTimeListItem(set, attendeesCount)}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+            </div>
           )}
         </div>
       )}

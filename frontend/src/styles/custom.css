@@ -1,28 +1,10 @@
 /* Custom styles for the festival app */
 
-.custom-day-header {
-  padding: 1rem;
-  border-radius: 0.5rem;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  background-image: linear-gradient(to bottom right, #2d0d5c, #5b29ab, #3e1554);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.custom-day-header::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 30% 40%, rgba(151, 80, 226, 0.5), transparent 50%);
-  filter: blur(16px);
-} 
-
 /* Dark purple header for time slots */
 .sticky-time-header {
     position: sticky;
     top: 0;
-    background-color: #1f0c42; /* Very dark purple */
+    background-color: #614598; /* Very dark purple */
     color: white;
     padding: 0.75rem 1rem;
     font-weight: 800;
@@ -32,4 +14,4 @@
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
     z-index: 10;
-  } 
+}

@@ -47,7 +47,7 @@ function ArtistInfoCard({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="text-lg sm:text-xl font-bold truncate pr-2">{artistSet.artist}</h3>
+          <h3 className="text-lg sm:text-xl font-bold truncate pr-2">Artist Profile</h3>
           <button 
             onClick={onClose}
             className="bg-gray-200 hover:bg-gray-300 active:bg-gray-400 w-8 h-8 rounded-full flex items-center justify-center text-gray-600 focus:outline-none"
@@ -59,16 +59,35 @@ function ArtistInfoCard({
           </button>
         </div>
         
-        <div className="p-4">
-          <div className="mb-4">
-            <p className="text-sm sm:text-base mb-2"><span className="font-medium">Stage:</span> {artistSet.stage}</p>
-            <p className="text-sm sm:text-base mb-2"><span className="font-medium">Start:</span> {formatDateTime(artistSet.start_time)}</p>
-            <p className="text-sm sm:text-base mb-2"><span className="font-medium">End:</span> {formatDateTime(artistSet.end_time)}</p>
-            {artistSet.description && (
-              <p className="mt-3 text-sm sm:text-base">{artistSet.description}</p>
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center">
+            {artistSet.image_url && (
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-200 mr-4 flex-shrink-0">
+                <img 
+                  src={artistSet.image_url} 
+                  alt={artistSet.artist} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = "https://via.placeholder.com/100?text=" + encodeURIComponent(artistSet.artist.charAt(0));
+                  }}
+                />
+              </div>
             )}
+            <div>
+              <h4 className="text-lg font-bold">{artistSet.artist}</h4>
+              <p className="text-sm text-gray-600">Stage: {artistSet.stage}</p>
+              <p className="text-sm text-gray-600">Start: {formatDateTime(artistSet.start_time)}</p>
+              <p className="text-sm text-gray-600">End: {formatDateTime(artistSet.end_time)}</p>
+            </div>
           </div>
           
+          {artistSet.description && (
+            <p className="mt-3 text-sm sm:text-base">{artistSet.description}</p>
+          )}
+        </div>
+        
+        <div className="p-4">
           <AttendeesList
             attendees={attendees}
             loading={attendeesLoading}

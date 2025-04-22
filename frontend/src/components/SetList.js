@@ -442,6 +442,25 @@ function SetList({ userId }) {
           isArtistSelected ? theme.components.card.selected : theme.components.card.unselected
         }`}
       >
+        {/* Artist image section */}
+        <div className="h-32 relative bg-gray-200">
+          {set.image_url ? (
+            <img 
+              src={set.image_url} 
+              alt={set.artist} 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.src = "https://via.placeholder.com/100?text=" + encodeURIComponent(set.artist.charAt(0));
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 text-2xl font-bold">
+              {set.artist.charAt(0)}
+            </div>
+          )}
+        </div>
+        
         <div className={theme.colors.secondary.light + " p-2 flex-grow"}>
           <h3 className="font-bold text-sm truncate">{set.artist}</h3>
           {viewMode === 'stage' ? (
@@ -489,6 +508,25 @@ function SetList({ userId }) {
           isArtistSelected ? theme.components.card.selected : theme.components.card.unselected
         }`}
       >
+        {/* Artist image section */}
+        <div className="h-40 relative bg-gray-200">
+          {set.image_url ? (
+            <img 
+              src={set.image_url} 
+              alt={set.artist} 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.src = "https://via.placeholder.com/200?text=" + encodeURIComponent(set.artist.charAt(0));
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 text-4xl font-bold">
+              {set.artist.charAt(0)}
+            </div>
+          )}
+        </div>
+        
         <div className={theme.colors.secondary.light + " p-3 sm:p-4"}>
           <h3 className="font-bold text-base sm:text-lg truncate">{set.artist}</h3>
           {viewMode === 'stage' ? (
@@ -535,12 +573,36 @@ function SetList({ userId }) {
           isArtistSelected ? theme.colors.primary.light : 'hover:bg-gray-50'
         }`}
       >
-        <div className="flex-grow">
-          <div className="font-medium text-base">{set.artist}</div>
-          <div className="text-sm text-gray-600 mt-1">
-            <span className={`${theme.components.tag.base} ${stageColorClass}`}>
-              {set.stage}
-            </span>
+        <div className="flex items-center flex-grow">
+          {/* Artist Image */}
+          <div className="flex-shrink-0 mr-3">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+              {set.image_url ? (
+                <img 
+                  src={set.image_url} 
+                  alt={set.artist} 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = "https://via.placeholder.com/100?text=" + encodeURIComponent(set.artist.charAt(0));
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold">
+                  {set.artist.charAt(0)}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Artist Info */}
+          <div className="flex-grow">
+            <div className="font-medium text-base">{set.artist}</div>
+            <div className="text-sm text-gray-600 mt-1">
+              <span className={`${theme.components.tag.base} ${stageColorClass}`}>
+                {set.stage}
+              </span>
+            </div>
           </div>
         </div>
         

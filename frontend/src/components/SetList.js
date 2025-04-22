@@ -175,8 +175,8 @@ function SetList({ userId }) {
 
   const handleSetClick = (set) => {
     // Simply open the modal with the selected set
-    setSelectedSet(set);
-    fetchAttendees(set.id);
+      setSelectedSet(set);
+      fetchAttendees(set.id);
   };
 
   const handleViewUser = (attendeeId, event) => {
@@ -275,8 +275,8 @@ function SetList({ userId }) {
   const renderArtistCard = (set) => {
     const isArtistSelected = isSelected(set.id);
     const friendCount = attendeeCounts[set.id] || 0;
-    
-    return (
+
+  return (
       <div 
         key={set.id}
         onClick={() => handleSetClick(set)}
@@ -303,7 +303,7 @@ function SetList({ userId }) {
         </div>
         
         <div className="p-1 bg-white border-t border-gray-200">
-          <button
+            <button 
             onClick={(e) => handleToggleSelection(set.id, e)}
             className={`w-full py-2 rounded text-xs ${
               isArtistSelected
@@ -312,8 +312,8 @@ function SetList({ userId }) {
             }`}
           >
             {isArtistSelected ? 'Remove' : 'Add'}
-          </button>
-        </div>
+            </button>
+          </div>
       </div>
     );
   };

@@ -95,8 +95,13 @@ def handle_selections():
 def get_user_selections(user_id):
     User.query.get_or_404(user_id)  # Check if user exists
     
-    selections = UserSelection.query.filter_by(user_id=user_id).all()
-    sets = [selection.set for selection in selections]
+    # Use a join with the Set model and order by start_time in the database query
+    sets = db.session.query(Set)\
+        .join(UserSelection, UserSelection.set_id == Set.id)\
+        .filter(UserSelection.user_id == user_id)\
+        .order_by(Set.start_time)\
+        .all()
+    
     return jsonify([s.to_dict() for s in sets])
 
 @api.route('/sets/<int:set_id>/users', methods=['GET'])

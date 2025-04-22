@@ -119,7 +119,7 @@ function App() {
             </div>
             
             <div style={{ display: activeTab === 'mySelections' ? 'block' : 'none' }}>
-              <UserSelections userId={currentUser.id} />
+              <UserSelections userId={currentUser.id} isVisible={activeTab === 'mySelections'} />
             </div>
             
             <div style={{ display: activeTab === 'allUsers' ? 'block' : 'none' }}>

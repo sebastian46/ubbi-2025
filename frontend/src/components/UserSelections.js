@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import UserProfile from './UserProfile';
 import ArtistInfoCard from './ArtistInfoCard';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://ubbi.fromseb.com:5000/api';
 
-function UserSelections({ userId }) {
+function UserSelections({ userId, isVisible }) {
   const [selections, setSelections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,21 +16,48 @@ function UserSelections({ userId }) {
   const [pendingRemoval, setPendingRemoval] = useState(null);
   const [actionFeedback, setActionFeedback] = useState(null);
 
+  // Function to fetch the most recent selections
+  const fetchSelections = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/users/${userId}/selections`);
+      setSelections(response.data);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching selections:', error);
+      setError('Failed to load your selections');
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  // Initial data fetch on component mount
   useEffect(() => {
-    const fetchSelections = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/users/${userId}/selections`);
-        setSelections(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching selections:', error);
-        setError('Failed to load your selections');
-        setLoading(false);
+    fetchSelections();
+  }, [fetchSelections]);
+
+  // Fetch when the component becomes visible (e.g., when switching tabs)
+  useEffect(() => {
+    if (isVisible) {
+      fetchSelections();
+    }
+  }, [isVisible, fetchSelections]);
+
+  // Add event listener for visibility changes to always fetch fresh data when tab becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSelections();
       }
     };
 
-    fetchSelections();
-  }, [userId]);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [fetchSelections]);
 
   // Clear feedback message after 3 seconds
   useEffect(() => {

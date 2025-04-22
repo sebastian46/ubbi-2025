@@ -8,6 +8,7 @@ function UserList({ onSelectUser }) {
   const [newUserName, setNewUserName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmUser, setConfirmUser] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -38,6 +39,19 @@ function UserList({ onSelectUser }) {
       setError('Failed to create user');
     }
   };
+  
+  const handleUserClick = (user) => {
+    setConfirmUser(user);
+  };
+  
+  const handleConfirmLogin = () => {
+    onSelectUser(confirmUser);
+    setConfirmUser(null);
+  };
+  
+  const handleCancelLogin = () => {
+    setConfirmUser(null);
+  };
 
   if (loading) return <div className="text-center py-4">Loading users...</div>;
   if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
@@ -54,6 +68,7 @@ function UserList({ onSelectUser }) {
             onChange={(e) => setNewUserName(e.target.value)}
             placeholder="Enter your name"
             className="flex-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            maxLength={30}
             required
           />
           <button 
@@ -69,16 +84,42 @@ function UserList({ onSelectUser }) {
       {users.length === 0 ? (
         <p className="text-gray-500">No profiles yet. Create one to get started.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {users.map(user => (
             <div 
               key={user.id}
-              onClick={() => onSelectUser(user)}
+              onClick={() => handleUserClick(user)}
               className="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200 transition"
             >
-              <p className="font-medium">{user.name}</p>
+              <p className="font-medium truncate" title={user.name}>{user.name}</p>
             </div>
           ))}
+        </div>
+      )}
+      
+      {/* Confirmation Modal */}
+      {confirmUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Confirm Login</h3>
+            <p className="mb-6 break-words">
+              Are you sure you want to log in as <strong className="break-all">{confirmUser.name}</strong>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={handleCancelLogin}
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleConfirmLogin}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

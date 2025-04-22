@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, current_app
 from app import db
 from app.models import User, Set, UserSelection
 from datetime import datetime, date
-from sqlalchemy import func
+from sqlalchemy import func, text
 import json
 import logging
 
@@ -30,8 +30,9 @@ def handle_users():
         db.session.commit()
         return jsonify(new_user.to_dict()), 201
     
-    # GET method
-    users = User.query.order_by(User.name).all()
+    # GET method with case-insensitive sort using text() for explicit SQL
+    # This ensures the LOWER function is applied properly in the database
+    users = User.query.order_by(text("LOWER(name)")).all()
     return jsonify([user.to_dict() for user in users])
 
 @api.route('/users/<int:user_id>', methods=['GET'])
@@ -213,8 +214,14 @@ def get_user_selections(user_id):
 def get_set_users(set_id):
     Set.query.get_or_404(set_id)  # Check if set exists
     
-    selections = UserSelection.query.filter_by(set_id=set_id).all()
-    users = [selection.user for selection in selections]
+    # Join with User table to get users and sort by name case-insensitively
+    # Using explicit SQL text for the order_by to ensure proper case-insensitive sorting
+    users = db.session.query(User)\
+        .join(UserSelection, UserSelection.user_id == User.id)\
+        .filter(UserSelection.set_id == set_id)\
+        .order_by(text("LOWER(user.name)"))\
+        .all()
+    
     return jsonify([user.to_dict() for user in users])
 
 @api.route('/users/<int:user_id>/selections/<int:set_id>', methods=['DELETE'])

@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 from app import db
 from app.models import User, Set, UserSelection
-from datetime import datetime
+from datetime import datetime, date
+from sqlalchemy import func
 
 api = Blueprint('api', __name__, url_prefix='/api')
 
@@ -26,6 +27,29 @@ def handle_users():
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify(user.to_dict())
+
+# Festival days route
+@api.route('/festival-days', methods=['GET'])
+def get_festival_days():
+    # Query unique dates from the sets table
+    distinct_dates = db.session.query(
+        db.func.date(Set.start_time).label('date')
+    ).distinct().order_by('date').all()
+    
+    # Format the dates
+    formatted_days = []
+    for day in distinct_dates:
+        day_date = day.date
+        # Convert to Python date object if it isn't already
+        if not isinstance(day_date, date):
+            day_date = datetime.strptime(day_date, '%Y-%m-%d').date()
+        
+        formatted_days.append({
+            'date': day_date.isoformat(),
+            'label': day_date.strftime('%A, %B %d, %Y')
+        })
+    
+    return jsonify(formatted_days)
 
 # Set routes
 @api.route('/sets', methods=['GET', 'POST'])
@@ -53,14 +77,65 @@ def handle_sets():
         db.session.commit()
         return jsonify(new_set.to_dict()), 201
     
-    # GET method
-    sets = Set.query.all()
+    # GET method with optional date filter
+    date_filter = request.args.get('date')
+    
+    if date_filter:
+        try:
+            # Create datetime objects for the start and end of the specified date
+            filter_date = datetime.fromisoformat(date_filter)
+            start_of_day = datetime(filter_date.year, filter_date.month, filter_date.day, 0, 0, 0)
+            end_of_day = datetime(filter_date.year, filter_date.month, filter_date.day, 23, 59, 59)
+            
+            sets = Set.query.filter(
+                Set.start_time >= start_of_day,
+                Set.start_time <= end_of_day
+            ).order_by(Set.stage, Set.start_time).all()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format'}), 400
+    else:
+        sets = Set.query.order_by(Set.stage, Set.start_time).all()
+    
     return jsonify([s.to_dict() for s in sets])
 
 @api.route('/sets/<int:set_id>', methods=['GET'])
 def get_set(set_id):
     set = Set.query.get_or_404(set_id)
     return jsonify(set.to_dict())
+
+# New endpoint to get attendee counts for all sets in one request
+@api.route('/sets/attendee-counts', methods=['GET'])
+def get_all_attendee_counts():
+    date_filter = request.args.get('date')
+    
+    # Base query to count attendees per set
+    query = db.session.query(
+        UserSelection.set_id,
+        func.count(UserSelection.user_id).label('count')
+    ).group_by(UserSelection.set_id)
+    
+    if date_filter:
+        try:
+            # Create datetime objects for the start and end of the specified date
+            filter_date = datetime.fromisoformat(date_filter)
+            start_of_day = datetime(filter_date.year, filter_date.month, filter_date.day, 0, 0, 0)
+            end_of_day = datetime(filter_date.year, filter_date.month, filter_date.day, 23, 59, 59)
+            
+            # Filter by date through a subquery
+            set_ids = db.session.query(Set.id).filter(
+                Set.start_time >= start_of_day,
+                Set.start_time <= end_of_day
+            )
+            
+            query = query.filter(UserSelection.set_id.in_(set_ids))
+        except ValueError:
+            return jsonify({'error': 'Invalid date format'}), 400
+    
+    # Execute the query and format the results
+    counts = query.all()
+    result = {str(set_id): count for set_id, count in counts}
+    
+    return jsonify(result)
 
 # User Selection routes
 @api.route('/selections', methods=['GET', 'POST'])
@@ -95,12 +170,31 @@ def handle_selections():
 def get_user_selections(user_id):
     User.query.get_or_404(user_id)  # Check if user exists
     
-    # Use a join with the Set model and order by start_time in the database query
-    sets = db.session.query(Set)\
+    # Get date filter parameter
+    date_filter = request.args.get('date')
+    
+    # Base query
+    query = db.session.query(Set)\
         .join(UserSelection, UserSelection.set_id == Set.id)\
-        .filter(UserSelection.user_id == user_id)\
-        .order_by(Set.start_time)\
-        .all()
+        .filter(UserSelection.user_id == user_id)
+    
+    # Apply date filter if provided
+    if date_filter:
+        try:
+            # Create datetime objects for the start and end of the specified date
+            filter_date = datetime.fromisoformat(date_filter)
+            start_of_day = datetime(filter_date.year, filter_date.month, filter_date.day, 0, 0, 0)
+            end_of_day = datetime(filter_date.year, filter_date.month, filter_date.day, 23, 59, 59)
+            
+            query = query.filter(
+                Set.start_time >= start_of_day,
+                Set.start_time <= end_of_day
+            )
+        except ValueError:
+            return jsonify({'error': 'Invalid date format'}), 400
+    
+    # Execute the query and order by start_time
+    sets = query.order_by(Set.start_time).all()
     
     return jsonify([s.to_dict() for s in sets])
 

@@ -214,7 +214,7 @@ function SetList({ userId }) {
     };
 
     if (!initialLoading) {
-      fetchData();
+    fetchData();
     }
   }, [selectedDay, userId, initialLoading, cachedSetsByDay, cachedSelectionsByDay]);
 
@@ -224,7 +224,7 @@ function SetList({ userId }) {
       const response = await axios.get(`${API_URL}/sets/attendee-counts`, {
         params: { date }
       });
-      // console.log('Attendee counts response:', response.data);
+      console.log('Attendee counts response:', response.data);
       setAttendeeCounts(response.data);
     } catch (error) {
       console.error('Error fetching attendee counts:', error);
@@ -447,7 +447,7 @@ function SetList({ userId }) {
     const isArtistSelected = isSelected(set.id);
     const friendCount = parseInt(attendeeCounts[set.id] || 0);
 
-    return (
+  return (
       <div 
         key={set.id}
         onClick={() => handleSetClick(set)}
@@ -707,29 +707,29 @@ function SetList({ userId }) {
             </div>
             
             {/* View toggle as pills */}
-            <div className="inline-flex rounded-md shadow-sm" role="group">
-              <button
-                onClick={() => toggleViewMode('stage')}
-                className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
-                  viewMode === 'stage' 
-                    ? theme.colors.primary.standard
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                }`}
-              >
-                By Stage
-              </button>
-              <button
-                onClick={() => toggleViewMode('time')}
-                className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
-                  viewMode === 'time' 
-                    ? theme.colors.primary.standard
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
-                }`}
-              >
-                By Time
-              </button>
-            </div>
-          </div>
+        <div className="inline-flex rounded-md shadow-sm" role="group">
+          <button
+            onClick={() => toggleViewMode('stage')}
+            className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+              viewMode === 'stage' 
+                ? theme.colors.primary.standard
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+            }`}
+          >
+            By Stage
+          </button>
+          <button
+            onClick={() => toggleViewMode('time')}
+            className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+              viewMode === 'time' 
+                ? theme.colors.primary.standard
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
+            }`}
+          >
+            By Time
+          </button>
+        </div>
+      </div>
         </div>
       )}
       
@@ -762,23 +762,23 @@ function SetList({ userId }) {
           <p className="text-sm text-gray-500">No sets for {activeStage}.</p>
         ) : (
           <>
-            {/* Mobile view - 2 artists per row */}
-            <div className="grid grid-cols-2 gap-2 sm:hidden">
+                {/* Mobile view - 2 artists per row */}
+                <div className="grid grid-cols-2 gap-2 sm:hidden">
               {filteredSets.map(set => (
                 <div key={set.id}>
                   {renderArtistCard(set)}
                 </div>
               ))}
-            </div>
-            
-            {/* Tablet and desktop view */}
-            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-3">
+                </div>
+                
+                {/* Tablet and desktop view */}
+                <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-3">
               {filteredSets.map(set => (
                 <div key={set.id}>
                   {renderDesktopCard(set)}
                 </div>
               ))}
-            </div>
+              </div>
           </>
         )
       ) : (
@@ -787,27 +787,27 @@ function SetList({ userId }) {
           {Object.keys(setsByTime).length === 0 ? (
             <p className="p-4 text-sm text-gray-500">No scheduled sets found for this day.</p>
           ) : (
-            <div className="bg-white rounded-lg shadow">
+                <div className="bg-white rounded-lg shadow">
               {Object.entries(setsByTime)
                 .sort(([timeA], [timeB]) => new Date(timeA) - new Date(timeB))
                 .map(([timeSlot, setsAtTime], timeIndex) => (
                   <div key={timeSlot} className={timeIndex > 0 ? "mt-4" : ""}>
                     <div className={theme.components.time.header}>
                       {formatTimeOnly(timeSlot)}
-                    </div>
-                    <div className="border-l border-r border-gray-200 rounded-b-lg overflow-hidden">
+                      </div>
+                      <div className="border-l border-r border-gray-200 rounded-b-lg overflow-hidden">
                       {setsAtTime.map((set, setIndex) => {
-                        const attendeesCount = attendeeCounts[set.id] || 0;
-                        return (
-                          <div key={set.id} className={setIndex > 0 ? "border-t border-gray-200" : ""}>
-                            {renderTimeListItem(set, attendeesCount)}
-                          </div>
-                        );
-                      })}
+                          const attendeesCount = attendeeCounts[set.id] || 0;
+                          return (
+                            <div key={set.id} className={setIndex > 0 ? "border-t border-gray-200" : ""}>
+                              {renderTimeListItem(set, attendeesCount)}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
-            </div>
+                  ))}
+                </div>
           )}
         </div>
       )}

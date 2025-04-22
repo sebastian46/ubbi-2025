@@ -65,7 +65,7 @@ def seed_data():
         if not csv_path:
             print("Warning: lineup.csv not found. Using fallback data.")
             # Fallback to basic set data if CSV not found
-            base_date = datetime.now().replace(hour=12, minute=0, second=0, microsecond=0)
+            base_date = datetime(2025, 4, 26, 0, 0, 0).replace(tzinfo=None)  # April 26 2025 00:00:00 CST
             sets = [
                 Set(
                     artist="Subtronics",
@@ -85,7 +85,7 @@ def seed_data():
         else:
             print(f"Using lineup data from: {csv_path}")
             # Set base dates for the festival
-            day1_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            day1_date = datetime(2025, 4, 26, 0, 0, 0).replace(tzinfo=None)  # April 26 2025 00:00:00 CST
             day2_date = day1_date + timedelta(days=1)
             
             with open(csv_path, 'r') as csv_file:

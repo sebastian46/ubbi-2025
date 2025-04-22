@@ -224,6 +224,26 @@ function SetList({ userId }) {
     });
   };
 
+  // Format date to show event day (April 26 = Day 1, April 27 = Day 2)
+  const formatEventDay = (dateTimeStr) => {
+    const date = new Date(dateTimeStr);
+    const eventStart = new Date(2025, 3, 26); // April 26, 2025 (months are 0-indexed)
+    
+    // Calculate day number (1-based)
+    const diffTime = date.getTime() - eventStart.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    
+    return `${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}, Day ${diffDays}`;
+  };
+
+  // Format time range (start to end)
+  const formatTimeRange = (startTimeStr, endTimeStr) => {
+    const startDate = new Date(startTimeStr);
+    const endDate = new Date(endTimeStr);
+    
+    return `${startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} - ${endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+  };
+
   // Get unique stages from sets
   const getStages = () => {
     return [...new Set(sets.map(set => set.stage))];
@@ -233,6 +253,29 @@ function SetList({ userId }) {
   const getFilteredSets = () => {
     if (!activeStage) return [];
     return sets.filter(set => set.stage === activeStage);
+  };
+
+  // Group sets by day
+  const getSetsByDay = (sets) => {
+    const setsByDay = {};
+    
+    sets.forEach(set => {
+      const date = new Date(set.start_time);
+      const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      
+      if (!setsByDay[dayKey]) {
+        setsByDay[dayKey] = [];
+      }
+      
+      setsByDay[dayKey].push(set);
+    });
+    
+    // Sort each day's sets by start time
+    Object.keys(setsByDay).forEach(day => {
+      setsByDay[day].sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+    });
+    
+    return setsByDay;
   };
 
   // Get sets organized by time
@@ -288,7 +331,7 @@ function SetList({ userId }) {
           <h3 className="font-bold text-sm truncate">{set.artist}</h3>
           {viewMode === 'stage' ? (
             <div className="text-xs text-gray-600 mt-1">
-              <p className="truncate">{formatDateTime(set.start_time)}</p>
+              <p className="truncate">{formatTimeRange(set.start_time, set.end_time)}</p>
               <div className="flex items-center mt-1">
                 <span className="text-xs text-blue-600 font-medium">
                   {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
@@ -335,7 +378,7 @@ function SetList({ userId }) {
           <h3 className="font-bold text-base sm:text-lg truncate">{set.artist}</h3>
           {viewMode === 'stage' ? (
             <div className="text-xs sm:text-sm text-gray-600 mt-1">
-              <p>Time: {formatDateTime(set.start_time)}</p>
+              <p>Time: {formatTimeRange(set.start_time, set.end_time)}</p>
               <div className="flex items-center mt-2">
                 <span className="text-sm text-blue-600 font-medium">
                   {friendCount} {friendCount === 1 ? 'friend' : 'friends'} attending
@@ -415,6 +458,7 @@ function SetList({ userId }) {
   const stages = getStages();
   const filteredSets = getFilteredSets();
   const setsByTime = getSetsByTime();
+  const setsByDay = getSetsByDay(filteredSets);
 
   return (
     <div>
@@ -495,15 +539,26 @@ function SetList({ userId }) {
           <p className="text-sm text-gray-500">No sets for {activeStage}.</p>
         ) : (
           <>
-            {/* Mobile view - 2 artists per row */}
-            <div className="grid grid-cols-2 gap-2 sm:hidden">
-              {filteredSets.map(set => renderArtistCard(set))}
-            </div>
-            
-            {/* Tablet and desktop view */}
-            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-3">
-              {filteredSets.map(set => renderDesktopCard(set))}
-            </div>
+            {Object.entries(setsByDay).map(([dayKey, daySets], dayIndex) => (
+              <div key={dayKey} className={dayIndex > 0 ? "mt-8" : ""}>
+                {/* Date/Day Header */}
+                <div className="mb-4 bg-gray-100 p-3 rounded-lg text-center">
+                  <h3 className="font-bold text-blue-700">
+                    {formatEventDay(daySets[0].start_time)}
+                  </h3>
+                </div>
+                
+                {/* Mobile view - 2 artists per row */}
+                <div className="grid grid-cols-2 gap-2 sm:hidden">
+                  {daySets.map(set => renderArtistCard(set))}
+                </div>
+                
+                {/* Tablet and desktop view */}
+                <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-3">
+                  {daySets.map(set => renderDesktopCard(set))}
+                </div>
+              </div>
+            ))}
           </>
         )
       ) : (

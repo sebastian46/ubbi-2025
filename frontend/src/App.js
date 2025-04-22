@@ -115,7 +115,7 @@ function App() {
             
             {/* Keep components mounted but hidden when inactive */}
             <div style={{ display: activeTab === 'sets' ? 'block' : 'none' }}>
-              <SetList userId={currentUser.id} />
+              <SetList userId={currentUser.id} isVisible={activeTab === 'sets'} />
             </div>
             
             <div style={{ display: activeTab === 'mySelections' ? 'block' : 'none' }}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import UserProfile from './UserProfile';
 import ArtistInfoCard from './ArtistInfoCard';
@@ -68,7 +68,7 @@ const getStageColorClass = (stageName) => {
   return theme.stages[stageName] || 'bg-gray-100 text-gray-800';
 };
 
-function SetList({ userId }) {
+function SetList({ userId, isVisible }) {
   const [sets, setSets] = useState([]);
   const [userSelections, setUserSelections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -222,7 +222,7 @@ function SetList({ userId }) {
   }, [selectedDay, userId, initialLoading, cachedSetsByDay, cachedSelectionsByDay, activeStage]);
 
   // Fetch attendee counts for all sets in a day with a single request
-  const fetchAttendeeCounts = async (date) => {
+  const fetchAttendeeCounts = useCallback(async (date) => {
     try {
       const response = await axios.get(`${API_URL}/sets/attendee-counts`, {
         params: { date }
@@ -234,7 +234,7 @@ function SetList({ userId }) {
       // Set empty object as fallback
       setAttendeeCounts({});
     }
-  };
+  }, []);
 
   // Clear feedback message after 3 seconds
   useEffect(() => {
@@ -260,16 +260,8 @@ function SetList({ userId }) {
         // Directly remove the selection without confirmation
         await axios.delete(`${API_URL}/users/${userId}/selections/${setId}`);
         
-        // Update local state
-        setUserSelections(userSelections.filter(selection => selection.id !== setId));
-        
-        // Update cache
-        if (selectedDay) {
-          setCachedSelectionsByDay(prev => ({
-            ...prev,
-            [selectedDay]: prev[selectedDay]?.filter(selection => selection.id !== setId) || []
-          }));
-        }
+        // Fetch fresh user selections data instead of manually updating state
+        await fetchUserSelections();
         
         setActionFeedback({
           type: 'success',
@@ -286,18 +278,9 @@ function SetList({ userId }) {
       } else {
         // Add selection
         await axios.post(`${API_URL}/selections`, { user_id: userId, set_id: setId });
-        const setData = sets.find(s => s.id === setId);
         
-        // Update local state
-        setUserSelections([...userSelections, setData]);
-        
-        // Update cache
-        if (selectedDay && setData) {
-          setCachedSelectionsByDay(prev => ({
-            ...prev,
-            [selectedDay]: [...(prev[selectedDay] || []), setData]
-          }));
-        }
+        // Fetch fresh user selections data instead of manually updating state
+        await fetchUserSelections();
         
         setActionFeedback({
           type: 'success', 
@@ -439,6 +422,54 @@ function SetList({ userId }) {
     // console.log('Final setsByTime structure:', Object.keys(setsByTime).map(k => formatTimeOnly(k)));
     return setsByTime;
   };
+
+  // Function to fetch just the user selections
+  const fetchUserSelections = useCallback(async () => {
+    if (!selectedDay || !userId) return;
+    
+    try {
+      const response = await axios.get(`${API_URL}/users/${userId}/selections`, {
+        params: { date: selectedDay }
+      });
+      
+      // Update state with the fresh data
+      setUserSelections(response.data);
+      
+      // Update the cache
+      setCachedSelectionsByDay(prev => ({
+        ...prev,
+        [selectedDay]: response.data
+      }));
+      
+    } catch (error) {
+      console.error('Error fetching user selections:', error);
+    }
+  }, [userId, selectedDay]);
+
+  // Fetch user selections when the tab becomes visible
+  useEffect(() => {
+    if (isVisible && selectedDay && !initialLoading) {
+      fetchUserSelections();
+      fetchAttendeeCounts(selectedDay);
+    }
+  }, [isVisible, selectedDay, initialLoading, fetchUserSelections, fetchAttendeeCounts]);
+
+  // Add handler for document visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && selectedDay) {
+        fetchUserSelections();
+        fetchAttendeeCounts(selectedDay);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [selectedDay, fetchUserSelections, fetchAttendeeCounts]);
 
   if (initialLoading) return <div className="text-center py-4">Loading festival days...</div>;
   if (loading) return <div className="text-center py-4">Loading sets...</div>;

@@ -8,7 +8,9 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    
+    # Configure CORS more explicitly
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
     
     # Configure SQLite database
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///festival.db"

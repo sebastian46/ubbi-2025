@@ -7,12 +7,9 @@ RUN npm install
 
 COPY . .
 
-# Define build argument with default value
-ARG REACT_APP_API_URL=http://localhost:5000/api
-# Set it as an environment variable
-ENV REACT_APP_API_URL=$REACT_APP_API_URL
-
 EXPOSE 3003
+
 ENV PORT=3003
+ENV REACT_APP_API_URL=https://ubbi.fromseb.com:5000/api
 
 CMD ["npm", "start"] 

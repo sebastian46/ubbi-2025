@@ -28,10 +28,9 @@ services:
       - "3003:3003"
     environment:
       - PORT=3003
+      - REACT_APP_API_URL=https://ubbi.fromseb.com:5000/api
     depends_on:
       - backend
-    args:
-      - REACT_APP_API_URL=https://ubbi.fromseb.com/api
 
 volumes:
   sqlite_data: 

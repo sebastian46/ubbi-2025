@@ -57,3 +57,6 @@ sqlite_data/
 # Logs
 logs/
 *.log
+
+/node_modules
+package-lock.json

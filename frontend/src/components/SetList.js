@@ -60,7 +60,7 @@ const theme = {
     header: {
       day: 'mb-4 bg-gray-100 p-3 rounded-lg text-center',
       dayText: 'font-bold text-blue-700',
-      time: 'sticky top-0 bg-blue-600 text-white px-4 py-3 font-medium border-t border-b border-gray-200 shadow-sm rounded-t-lg'
+      time: 'sticky top-0 bg-orange-600 text-white px-4 py-3 font-medium border-t border-b border-gray-200 shadow-sm rounded-t-lg'
     }
   }
 };

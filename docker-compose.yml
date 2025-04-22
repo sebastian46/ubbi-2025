@@ -9,6 +9,7 @@ services:
       - ./backend/app:/app/app
       - ./backend/seed.py:/app/seed.py
       - ./lineup.csv:/app/lineup.csv
+      - ./parsed.csv:/app/parsed.csv
       - sqlite_data:/app/instance
     ports:
       - "5000:5000"

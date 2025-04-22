@@ -19,6 +19,7 @@ class Set(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
     description = db.Column(db.Text, nullable=True)
+    image_url = db.Column(db.Text, nullable=True)
     selections = db.relationship('UserSelection', backref='set', lazy=True, cascade="all, delete-orphan")
 
     def to_dict(self):
@@ -28,7 +29,8 @@ class Set(db.Model):
             'stage': self.stage,
             'start_time': self.start_time.isoformat(),
             'end_time': self.end_time.isoformat(),
-            'description': self.description
+            'description': self.description,
+            'image_url': self.image_url
         }
 
 class UserSelection(db.Model):

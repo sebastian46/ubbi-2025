@@ -7,15 +7,19 @@ import random
 
 def parse_time(time_string, base_date):
     """Convert time string to a datetime object on the given base date"""
-    # Parse the time string format (like "10:45:00 PM")
-    time_format = "%I:%M:%S %p"
+    # Remove seconds if present and standardize format
+    if len(time_string.split(':')) > 2:  # If it has seconds
+        time_format = "%I:%M:%S %p"
+    else:
+        time_format = "%I:%M %p"
+        
     time_obj = datetime.strptime(time_string, time_format)
     
     # Combine with base date
     result = base_date.replace(
         hour=time_obj.hour,
         minute=time_obj.minute,
-        second=time_obj.second
+        second=0  # Reset seconds to 0
     )
     
     # Adjust for midnight (next day)
@@ -51,9 +55,9 @@ def seed_data():
         
         # Try multiple possible locations for the CSV file
         csv_paths = [
-            "/app/lineup.csv",  # Docker container root
-            "lineup.csv",       # Current directory
-            "../lineup.csv"     # Project root
+            "/app/parsed.csv",    # Docker container root
+            "parsed.csv",         # Current directory
+            "../../parsed.csv"       # Project root
         ]
         
         csv_path = None
@@ -63,42 +67,43 @@ def seed_data():
                 break
         
         if not csv_path:
-            print("Warning: lineup.csv not found. Using fallback data.")
+            print("Warning: parsed.csv not found. Using fallback data.")
             # Fallback to basic set data if CSV not found
             base_date = datetime(2025, 4, 26, 0, 0, 0).replace(tzinfo=None)  # April 26 2025 00:00:00 CST
             sets = [
                 Set(
                     artist="Subtronics",
                     stage="Ubbi's Stage",
-                    start_time=base_date + timedelta(hours=10, minutes=45),
-                    end_time=base_date + timedelta(hours=12),
-                    description="Performance by Subtronics"
+                    start_time=base_date + timedelta(hours=22, minutes=45),
+                    end_time=base_date + timedelta(hours=24),
+                    description="Performance by Subtronics",
+                    image_url="https://2025-ubbidubbifestival-com.imgix.net/2024/11/5e37ce5c-2023press-86.jpg"
                 ),
                 Set(
                     artist="Fisher",
                     stage="Ubbi's Stage",
-                    start_time=base_date + timedelta(days=1, hours=8, minutes=30),
-                    end_time=base_date + timedelta(days=1, hours=10),
-                    description="Performance by Fisher"
+                    start_time=base_date + timedelta(days=1, hours=20, minutes=30),
+                    end_time=base_date + timedelta(days=1, hours=22),
+                    description="Performance by Fisher",
+                    image_url="https://2025-ubbidubbifestival-com.imgix.net/2024/11/7d7cead0-fisher_sunglassesfix.png"
                 )
             ]
         else:
             print(f"Using lineup data from: {csv_path}")
-            # Set base dates for the festival
-            day1_date = datetime(2025, 4, 26, 0, 0, 0).replace(tzinfo=None)  # April 26 2025 00:00:00 CST
-            day2_date = day1_date + timedelta(days=1)
             
             with open(csv_path, 'r') as csv_file:
                 csv_reader = csv.DictReader(csv_file)
                 
-                for i, row in enumerate(csv_reader):
+                for row in csv_reader:
                     # Skip empty rows
                     if not row['artist'] or row['artist'].strip() == '':
                         continue
                     
-                    # Determine if this is day 1 or day 2 based on row position
-                    # Assuming day 1 ends at row 25 (where there's an empty row in the CSV)
-                    base_date = day1_date if i <= 25 else day2_date
+                    # Determine base date from the day field
+                    if row['day'].strip() == 'Saturday':
+                        base_date = datetime(2025, 4, 26, 0, 0, 0).replace(tzinfo=None)
+                    else:  # Sunday
+                        base_date = datetime(2025, 4, 27, 0, 0, 0).replace(tzinfo=None)
                     
                     try:
                         # Parse start and end times
@@ -114,11 +119,12 @@ def seed_data():
                             stage=row['stage'],
                             start_time=start_time,
                             end_time=end_time,
-                            description=f"Performance by {row['artist']} at {row['stage']}"
+                            description=f"Performance by {row['artist']} at {row['stage']}",
+                            image_url=row['image_url']
                         )
                         sets.append(new_set)
                     except Exception as e:
-                        print(f"Error processing row {i+1}: {row}")
+                        print(f"Error processing row: {row}")
                         print(f"Error: {e}")
         
         db.session.add_all(sets)

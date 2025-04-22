@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ArtistInfoCard from './ArtistInfoCard';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://ubbi.fromseb.com:5000/api';
 
 function UserProfile({ userId, onBack }) {
   const [user, setUser] = useState(null);

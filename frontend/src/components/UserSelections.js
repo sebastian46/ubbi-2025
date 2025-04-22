@@ -3,7 +3,7 @@ import axios from 'axios';
 import UserProfile from './UserProfile';
 import ArtistInfoCard from './ArtistInfoCard';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://ubbi.fromseb.com:5000/api';
 
 function UserSelections({ userId }) {
   const [selections, setSelections] = useState([]);

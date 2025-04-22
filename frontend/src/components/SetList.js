@@ -37,9 +37,9 @@ const theme = {
     }
   },
   stages: {
-    "Ubbi's Stage": 'bg-orange-100 text-orange-800',
+    "Ubbi’s Stage": 'bg-orange-100 text-orange-800',
     "Zoom Room": 'bg-purple-100 text-purple-800',
-    "Dubbi's Stage": 'bg-green-100 text-green-800',
+    "Dubbi’s Stage": 'bg-green-100 text-green-800',
   },
   components: {
     card: {
@@ -370,8 +370,8 @@ function SetList({ userId }) {
     const date = new Date(dateTimeStr);
     return date.toLocaleString('en-US', {
       weekday: 'short',
-      month: 'short', 
-      day: 'numeric',
+      // month: 'short', 
+      // day: 'numeric',
       hour: 'numeric',
       minute: '2-digit'
     });

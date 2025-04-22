@@ -5,6 +5,71 @@ import ArtistInfoCard from './ArtistInfoCard';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+// Simple theme object to centralize styling
+const theme = {
+  colors: {
+    primary: {
+      light: 'bg-blue-50',
+      medium: 'bg-blue-100 text-blue-600',
+      standard: 'bg-blue-600 text-white',
+      hover: 'hover:bg-blue-700',
+      active: 'active:bg-blue-800',
+      border: 'border-blue-600'
+    },
+    secondary: {
+      light: 'bg-gray-50',
+      medium: 'bg-gray-100',
+      standard: 'bg-gray-600',
+      hover: 'hover:bg-gray-700', 
+      border: 'border-gray-200'
+    },
+    success: {
+      light: 'bg-green-100 text-green-800',
+      standard: 'bg-green-600 text-white',
+      hover: 'hover:bg-green-700'
+    },
+    danger: {
+      light: 'bg-red-100 text-red-600',
+      medium: 'bg-red-200',
+      standard: 'bg-red-500 text-white',
+      hover: 'hover:bg-red-600',
+      active: 'active:bg-red-700'
+    }
+  },
+  stages: {
+    "Ubbi’s Stage": 'bg-orange-100 text-orange-800',
+    "Zoom Room": 'bg-purple-100 text-purple-800',
+    "Dubbi’s Stage": 'bg-green-100 text-green-800',
+  },
+  components: {
+    card: {
+      base: 'border rounded-lg overflow-hidden shadow cursor-pointer',
+      selected: 'border-blue-500 border-2',
+      unselected: 'border-gray-200'
+    },
+    button: {
+      base: 'rounded text-white',
+      primary: 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white',
+      danger: 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white',
+      small: 'text-xs py-2',
+      medium: 'text-sm py-2'
+    },
+    tag: {
+      base: 'inline-block px-2 py-0.5 rounded text-xs'
+    },
+    header: {
+      day: 'mb-4 bg-gray-100 p-3 rounded-lg text-center',
+      dayText: 'font-bold text-blue-700',
+      time: 'sticky top-0 bg-blue-600 text-white px-4 py-3 font-medium border-t border-b border-gray-200 shadow-sm rounded-t-lg'
+    }
+  }
+};
+
+// Helper function to get stage color classes
+const getStageColorClass = (stageName) => {
+  return theme.stages[stageName] || 'bg-gray-100 text-gray-800';
+};
+
 function SetList({ userId }) {
   const [sets, setSets] = useState([]);
   const [userSelections, setUserSelections] = useState([]);
@@ -373,11 +438,11 @@ function SetList({ userId }) {
       <div 
         key={set.id}
         onClick={() => handleSetClick(set)}
-        className={`border rounded-lg overflow-hidden shadow cursor-pointer h-full flex flex-col ${
-          isArtistSelected ? 'border-blue-500 border-2' : 'border-gray-200'
+        className={`${theme.components.card.base} h-full flex flex-col ${
+          isArtistSelected ? theme.components.card.selected : theme.components.card.unselected
         }`}
       >
-        <div className="bg-gray-50 p-2 flex-grow">
+        <div className={theme.colors.secondary.light + " p-2 flex-grow"}>
           <h3 className="font-bold text-sm truncate">{set.artist}</h3>
           {viewMode === 'stage' ? (
             <div className="text-xs text-gray-600 mt-1">
@@ -398,10 +463,10 @@ function SetList({ userId }) {
         <div className="p-1 bg-white border-t border-gray-200">
             <button 
             onClick={(e) => handleToggleSelection(set.id, e)}
-            className={`w-full py-2 rounded text-xs ${
+            className={`w-full ${theme.components.button.small} ${
               isArtistSelected
-                ? 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
+                ? theme.components.button.danger
+                : theme.components.button.primary
             }`}
           >
             {isArtistSelected ? 'Remove' : 'Add'}
@@ -420,11 +485,11 @@ function SetList({ userId }) {
       <div 
         key={set.id}
         onClick={() => handleSetClick(set)}
-        className={`border rounded-lg overflow-hidden shadow cursor-pointer ${
-          isArtistSelected ? 'border-blue-500 border-2' : 'border-gray-200'
+        className={`${theme.components.card.base} ${
+          isArtistSelected ? theme.components.card.selected : theme.components.card.unselected
         }`}
       >
-        <div className="bg-gray-50 p-3 sm:p-4">
+        <div className={theme.colors.secondary.light + " p-3 sm:p-4"}>
           <h3 className="font-bold text-base sm:text-lg truncate">{set.artist}</h3>
           {viewMode === 'stage' ? (
             <div className="text-xs sm:text-sm text-gray-600 mt-1">
@@ -445,10 +510,10 @@ function SetList({ userId }) {
         <div className="p-2 sm:p-3 bg-white border-t border-gray-200">
           <button
             onClick={(e) => handleToggleSelection(set.id, e)}
-            className={`w-full py-2 rounded text-sm ${
+            className={`w-full ${theme.components.button.medium} ${
               isArtistSelected
-                ? 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
+                ? theme.components.button.danger
+                : theme.components.button.primary
             }`}
           >
             {isArtistSelected ? 'Remove' : 'Add to My Schedule'}
@@ -461,18 +526,19 @@ function SetList({ userId }) {
   // Time view list item
   const renderTimeListItem = (set, attendeesCount) => {
     const isArtistSelected = isSelected(set.id);
+    const stageColorClass = getStageColorClass(set.stage);
     
     return (
       <div 
         onClick={() => handleSetClick(set)}
         className={`p-4 flex justify-between items-center cursor-pointer transition-colors duration-150 ${
-          isArtistSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+          isArtistSelected ? theme.colors.primary.light : 'hover:bg-gray-50'
         }`}
       >
         <div className="flex-grow">
           <div className="font-medium text-base">{set.artist}</div>
           <div className="text-sm text-gray-600 mt-1">
-            <span className="inline-block bg-gray-100 px-2 py-0.5 rounded text-xs">
+            <span className={`${theme.components.tag.base} ${stageColorClass}`}>
               {set.stage}
             </span>
           </div>
@@ -518,7 +584,7 @@ function SetList({ userId }) {
       {/* Action feedback toast notification */}
       {actionFeedback && (
         <div className={`fixed bottom-16 sm:bottom-4 left-0 right-0 mx-auto w-64 p-2 rounded-lg shadow-lg text-center text-white text-sm z-50 ${
-          actionFeedback.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          actionFeedback.type === 'success' ? theme.colors.success.standard : theme.colors.danger.standard
         }`}>
           {actionFeedback.message}
         </div>
@@ -542,7 +608,7 @@ function SetList({ userId }) {
             onClick={() => toggleViewMode('stage')}
             className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
               viewMode === 'stage' 
-                ? 'bg-blue-600 text-white' 
+                ? theme.colors.primary.standard
                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
             }`}
           >
@@ -552,7 +618,7 @@ function SetList({ userId }) {
             onClick={() => toggleViewMode('time')}
             className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
               viewMode === 'time' 
-                ? 'bg-blue-600 text-white' 
+                ? theme.colors.primary.standard
                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
             }`}
           >
@@ -571,7 +637,7 @@ function SetList({ userId }) {
                 onClick={() => handleStageSelect(stage)}
                 className={`px-3 py-2 text-sm whitespace-nowrap rounded-t ${
                   activeStage === stage 
-                    ? 'bg-white text-blue-600 border-b-2 border-blue-600 font-medium shadow-sm' 
+                    ? `bg-white text-blue-600 border-b-2 ${theme.colors.primary.border} font-medium shadow-sm` 
                     : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-300'
                 }`}
               >
@@ -593,8 +659,8 @@ function SetList({ userId }) {
             {Object.entries(setsByDay).map(([dayKey, daySets], dayIndex) => (
               <div key={dayKey} className={dayIndex > 0 ? "mt-8" : ""}>
                 {/* Date/Day Header */}
-                <div className="mb-4 bg-gray-100 p-3 rounded-lg text-center">
-                  <h3 className="font-bold text-blue-700">
+                <div className={theme.components.header.day}>
+                  <h3 className={theme.components.header.dayText}>
                     {formatEventDay(daySets[0].start_time)}
                   </h3>
                 </div>
@@ -621,8 +687,8 @@ function SetList({ userId }) {
             setsByTimeAndDay.map((day, dayIndex) => (
               <div key={day.key} className={dayIndex > 0 ? "mt-8" : ""}>
                 {/* Date/Day Header */}
-                <div className="mb-4 bg-gray-100 p-3 rounded-lg text-center">
-                  <h3 className="font-bold text-blue-700">
+                <div className={theme.components.header.day}>
+                  <h3 className={theme.components.header.dayText}>
                     {day.dayLabel}
                   </h3>
                 </div>
@@ -630,7 +696,7 @@ function SetList({ userId }) {
                 <div className="bg-white rounded-lg shadow">
                   {day.sortedTimeSlots.map((timeSlot, timeIndex) => (
                     <div key={timeSlot.time} className={timeIndex > 0 ? "mt-4" : ""}>
-                      <div className="sticky top-0 bg-blue-600 text-white px-4 py-3 font-medium border-t border-b border-gray-200 shadow-sm rounded-t-lg">
+                      <div className={theme.components.header.time}>
                         {formatTimeOnly(timeSlot.time)}
                       </div>
                       <div className="border-l border-r border-gray-200 rounded-b-lg overflow-hidden">

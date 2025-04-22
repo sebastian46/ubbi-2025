@@ -113,17 +113,18 @@ function App() {
               </div>
             </div>
             
-            {activeTab === 'sets' && (
+            {/* Keep components mounted but hidden when inactive */}
+            <div style={{ display: activeTab === 'sets' ? 'block' : 'none' }}>
               <SetList userId={currentUser.id} />
-            )}
+            </div>
             
-            {activeTab === 'mySelections' && (
+            <div style={{ display: activeTab === 'mySelections' ? 'block' : 'none' }}>
               <UserSelections userId={currentUser.id} />
-            )}
+            </div>
             
-            {activeTab === 'allUsers' && (
+            <div style={{ display: activeTab === 'allUsers' ? 'block' : 'none' }}>
               <AllUsers />
-            )}
+            </div>
           </div>
         )}
       </main>

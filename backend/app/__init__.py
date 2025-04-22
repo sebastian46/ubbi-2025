@@ -12,7 +12,7 @@ def create_app():
     app = Flask(__name__)
     
     # Configure CORS more explicitly
-    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3003", "https://ubbi.fromseb.com"]}}, supports_credentials=True)
     
     # Configure SQLite database
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///festival.db"

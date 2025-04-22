@@ -10,6 +10,6 @@ COPY . .
 EXPOSE 3003
 
 ENV PORT=3003
-ENV REACT_APP_API_URL=https://ubbi.fromseb.com:5000/api
+ENV REACT_APP_API_URL=https://ubbi.fromseb.com/api
 
 CMD ["npm", "start"] 

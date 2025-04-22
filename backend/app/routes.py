@@ -1,10 +1,21 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from app import db
-from app.models import User, Set, UserSelection
+from app.models import User, Set, UserSelection, Artist, Stage, Favorite
 from datetime import datetime, date
 from sqlalchemy import func
+import json
+import logging
 
 api = Blueprint('api', __name__, url_prefix='/api')
+
+@api.before_request
+def log_request_info():
+    current_app.logger.info(f'Request: {request.method} {request.path} - {json.dumps(request.json if request.is_json else {})}')
+
+@api.after_request
+def log_response_info(response):
+    current_app.logger.info(f'Response: {response.status_code}')
+    return response
 
 # User routes
 @api.route('/users', methods=['GET', 'POST'])

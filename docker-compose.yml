@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: festival-backend
+    restart: always
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/seed.py:/app/seed.py
+      - sqlite_data:/app/instance
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=wsgi.py
+      - FLASK_DEBUG=1
+
+  frontend:
+    build: ./frontend
+    container_name: festival-frontend
+    restart: always
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - REACT_APP_API_URL=http://localhost:5000/api
+    depends_on:
+      - backend
+
+volumes:
+  sqlite_data: 

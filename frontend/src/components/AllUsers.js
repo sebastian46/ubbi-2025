@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import UserProfile from './UserProfile';
+import config from '../config';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://ubbi.fromseb.com:5000/api';
+// Use the centralized config instead of redefining it locally
+const API_URL = config.API_URL;
 
 function AllUsers() {
   const [users, setUsers] = useState([]);
@@ -13,7 +15,9 @@ function AllUsers() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        console.log('AllUsers: Fetching users from:', `${API_URL}/users`);
         const response = await axios.get(`${API_URL}/users`);
+        console.log('AllUsers: Response received:', response.data);
         setUsers(response.data);
         setLoading(false);
       } catch (error) {

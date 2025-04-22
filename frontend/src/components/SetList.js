@@ -58,9 +58,9 @@ const theme = {
       base: 'inline-block px-2 py-0.5 rounded text-xs'
     },
     header: {
-      day: 'mb-4 bg-gray-100 p-3 rounded-lg text-center',
-      dayText: 'font-bold text-blue-700',
-      time: 'sticky top-0 bg-orange-600 text-white px-4 py-3 font-medium border-t border-b border-gray-200 shadow-sm rounded-t-lg'
+      day: 'mb-4 p-4 rounded-lg text-center relative overflow-hidden bg-gradient-to-br from-purple-900 via-purple-700 to-black shadow-lg before:content-[""] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_30%_40%,rgba(216,180,254,0.5),transparent_50%)] before:blur-md',
+      dayText: 'font-bold text-white relative z-10 text-lg',
+      time: 'sticky top-0 bg-blue-600 text-white px-4 py-3 font-medium border-t border-b border-gray-200 shadow-sm rounded-t-lg'
     }
   }
 };

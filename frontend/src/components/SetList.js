@@ -306,6 +306,56 @@ function SetList({ userId }) {
     return setsByTime;
   };
 
+  // Get sets organized by time, grouped by day
+  const getSetsByTimeAndDay = () => {
+    // First group by day
+    const setsByDay = {};
+    
+    sets.forEach(set => {
+      const date = new Date(set.start_time);
+      const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      
+      if (!setsByDay[dayKey]) {
+        setsByDay[dayKey] = {
+          dayLabel: formatEventDay(set.start_time),
+          timeSlots: {}
+        };
+      }
+      
+      // Then within each day, group by time slot
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      const timeKey = `${hours}:${minutes}`;
+      
+      if (!setsByDay[dayKey].timeSlots[timeKey]) {
+        setsByDay[dayKey].timeSlots[timeKey] = {
+          time: set.start_time,
+          sets: []
+        };
+      }
+      
+      setsByDay[dayKey].timeSlots[timeKey].sets.push(set);
+    });
+    
+    // Sort timeSlots within each day
+    Object.keys(setsByDay).forEach(dayKey => {
+      const day = setsByDay[dayKey];
+      day.sortedTimeSlots = Object.values(day.timeSlots).sort((a, b) => 
+        new Date(a.time) - new Date(b.time)
+      );
+    });
+    
+    // Sort days
+    const sortedDays = Object.keys(setsByDay)
+      .sort()
+      .map(dayKey => ({
+        key: dayKey,
+        ...setsByDay[dayKey]
+      }));
+    
+    return sortedDays;
+  };
+
   if (loading) return <div className="text-center py-4">Loading sets...</div>;
   if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
 
@@ -459,6 +509,7 @@ function SetList({ userId }) {
   const filteredSets = getFilteredSets();
   const setsByTime = getSetsByTime();
   const setsByDay = getSetsByDay(filteredSets);
+  const setsByTimeAndDay = getSetsByTimeAndDay();
 
   return (
     <div>
@@ -563,24 +614,37 @@ function SetList({ userId }) {
         )
       ) : (
         // Time view
-        <div className="bg-white rounded-lg shadow">
-          {Object.keys(setsByTime).length === 0 ? (
+        <div>
+          {setsByTimeAndDay.length === 0 ? (
             <p className="p-4 text-sm text-gray-500">No scheduled sets found.</p>
           ) : (
-            Object.entries(setsByTime).map(([time, timeSets], timeIndex) => (
-              <div key={time} className={timeIndex > 0 ? "mt-4" : ""}>
-                <div className="sticky top-0 bg-blue-600 text-white px-4 py-3 font-medium border-t border-b border-gray-200 shadow-sm rounded-t-lg">
-                  {formatTimeOnly(time)}
+            setsByTimeAndDay.map((day, dayIndex) => (
+              <div key={day.key} className={dayIndex > 0 ? "mt-8" : ""}>
+                {/* Date/Day Header */}
+                <div className="mb-4 bg-gray-100 p-3 rounded-lg text-center">
+                  <h3 className="font-bold text-blue-700">
+                    {day.dayLabel}
+                  </h3>
                 </div>
-                <div className="border-l border-r border-gray-200 rounded-b-lg overflow-hidden">
-                  {timeSets.map((set, setIndex) => {
-                    const attendeesCount = attendeeCounts[set.id] || 0;
-                    return (
-                      <div key={set.id} className={setIndex > 0 ? "border-t border-gray-200" : ""}>
-                        {renderTimeListItem(set, attendeesCount)}
+                
+                <div className="bg-white rounded-lg shadow">
+                  {day.sortedTimeSlots.map((timeSlot, timeIndex) => (
+                    <div key={timeSlot.time} className={timeIndex > 0 ? "mt-4" : ""}>
+                      <div className="sticky top-0 bg-blue-600 text-white px-4 py-3 font-medium border-t border-b border-gray-200 shadow-sm rounded-t-lg">
+                        {formatTimeOnly(timeSlot.time)}
                       </div>
-                    );
-                  })}
+                      <div className="border-l border-r border-gray-200 rounded-b-lg overflow-hidden">
+                        {timeSlot.sets.map((set, setIndex) => {
+                          const attendeesCount = attendeeCounts[set.id] || 0;
+                          return (
+                            <div key={set.id} className={setIndex > 0 ? "border-t border-gray-200" : ""}>
+                              {renderTimeListItem(set, attendeesCount)}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))

@@ -37,9 +37,9 @@ const theme = {
     }
   },
   stages: {
-    "Ubbi’s Stage": 'bg-orange-100 text-orange-800',
+    "Ubbi's Stage": 'bg-orange-100 text-orange-800',
     "Zoom Room": 'bg-purple-100 text-purple-800',
-    "Dubbi’s Stage": 'bg-green-100 text-green-800',
+    "Dubbi's Stage": 'bg-green-100 text-green-800',
   },
   components: {
     card: {
@@ -58,7 +58,7 @@ const theme = {
       base: 'inline-block px-2 py-0.5 rounded text-xs'
     },
     time: {
-      header: 'sticky-time-header'
+      header: 'sticky top-0 py-3 px-4 bg-purple-900 text-white font-semibold z-10 shadow-sm'
     }
   }
 };
@@ -93,7 +93,7 @@ function SetList({ userId }) {
     const fetchFestivalDays = async () => {
       try {
         const response = await axios.get(`${API_URL}/festival-days`);
-        console.log('Festival days:', response.data);
+        // console.log('Festival days:', response.data);
         
         if (response.data.length > 0) {
           setFestivalDays(response.data);
@@ -118,7 +118,7 @@ function SetList({ userId }) {
       
       // Check if we already have cached data for this day
       if (cachedSetsByDay[selectedDay] && cachedSelectionsByDay[selectedDay]) {
-        console.log('Using cached data for', selectedDay);
+        // console.log('Using cached data for', selectedDay);
         setSets(cachedSetsByDay[selectedDay]);
         setUserSelections(cachedSelectionsByDay[selectedDay]);
         
@@ -134,6 +134,9 @@ function SetList({ userId }) {
           const uniqueTimes = [...new Set(cachedSetsByDay[selectedDay].map(set => set.start_time))];
           const sortedTimes = uniqueTimes.sort((a, b) => new Date(a) - new Date(b));
           setTimeSlots(sortedTimes);
+          
+          // Always fetch attendee counts for better accuracy, even with cached data
+          fetchAttendeeCounts(selectedDay);
         }
         
         setLoading(false);
@@ -142,18 +145,22 @@ function SetList({ userId }) {
       
       setLoading(true);
       try {
-        const [setsResponse, selectionsResponse] = await Promise.all([
+        const [setsResponse, selectionsResponse, attendeesResponse] = await Promise.all([
           axios.get(`${API_URL}/sets`, { 
             params: { date: selectedDay } 
           }),
           axios.get(`${API_URL}/users/${userId}/selections`, { 
             params: { date: selectedDay } 
+          }),
+          axios.get(`${API_URL}/sets/attendee-counts`, {
+            params: { date: selectedDay }
           })
         ]);
         
         // Log the raw response data
-        console.log('API Response - Sets:', setsResponse.data);
-        console.log('API Response - User Selections:', selectionsResponse.data);
+        // console.log('API Response - Sets:', setsResponse.data);
+        // console.log('API Response - User Selections:', selectionsResponse.data);
+        // console.log('API Response - Attendee Counts:', attendeesResponse.data);
         
         // Sort sets by stage and time
         const sortedSets = setsResponse.data.sort((a, b) => {
@@ -179,30 +186,13 @@ function SetList({ userId }) {
         setSets(sortedSets);
         setUserSelections(selectionsResponse.data);
         
-        // Fetch attendee counts for all sets
-        const countsPromises = sortedSets.map(async (set) => {
-          try {
-            const response = await axios.get(`${API_URL}/sets/${set.id}/users`);
-            return { setId: set.id, count: response.data.length };
-          } catch (error) {
-            console.error(`Error fetching attendees for set ${set.id}:`, error);
-            return { setId: set.id, count: 0 };
-          }
-        });
-        
-        const countResults = await Promise.all(countsPromises);
-        const countsMap = countResults.reduce((acc, { setId, count }) => {
-          acc[setId] = count;
-          return acc;
-        }, {});
-        
-        setAttendeeCounts(countsMap);
-        console.log('Attendee counts:', countsMap);
+        // Set attendee counts from the single endpoint
+        setAttendeeCounts(attendeesResponse.data);
         
         // Set the first stage as active by default
         if (sortedSets.length > 0) {
           const stages = [...new Set(sortedSets.map(set => set.stage))];
-          console.log('Unique stages:', stages);
+          // console.log('Unique stages:', stages);
           
           if (stages.length > 0) {
             setActiveStage(stages[0]);
@@ -211,7 +201,7 @@ function SetList({ userId }) {
           // Generate time slots
           const uniqueTimes = [...new Set(sortedSets.map(set => set.start_time))];
           const sortedTimes = uniqueTimes.sort((a, b) => new Date(a) - new Date(b));
-          console.log('Time slots:', sortedTimes.map(time => formatTimeOnly(time)));
+          // console.log('Time slots:', sortedTimes.map(time => formatTimeOnly(time)));
           setTimeSlots(sortedTimes);
         }
         
@@ -227,6 +217,21 @@ function SetList({ userId }) {
       fetchData();
     }
   }, [selectedDay, userId, initialLoading, cachedSetsByDay, cachedSelectionsByDay]);
+
+  // Fetch attendee counts for all sets in a day with a single request
+  const fetchAttendeeCounts = async (date) => {
+    try {
+      const response = await axios.get(`${API_URL}/sets/attendee-counts`, {
+        params: { date }
+      });
+      // console.log('Attendee counts response:', response.data);
+      setAttendeeCounts(response.data);
+    } catch (error) {
+      console.error('Error fetching attendee counts:', error);
+      // Set empty object as fallback
+      setAttendeeCounts({});
+    }
+  };
 
   // Clear feedback message after 3 seconds
   useEffect(() => {
@@ -268,11 +273,8 @@ function SetList({ userId }) {
           message: 'Removed from your schedule'
         });
         
-        // Update the friend count for this set
-        setAttendeeCounts(prev => ({
-          ...prev,
-          [setId]: Math.max(0, (prev[setId] || 0) - 1)
-        }));
+        // Fetch updated attendee counts for all sets with a single request
+        fetchAttendeeCounts(selectedDay);
         
         // If this set is currently selected and showing attendees, refresh the list
         if (selectedSet && selectedSet.id === setId) {
@@ -299,11 +301,8 @@ function SetList({ userId }) {
           message: 'Added to your schedule'
         });
         
-        // Update the friend count for this set
-        setAttendeeCounts(prev => ({
-          ...prev,
-          [setId]: (prev[setId] || 0) + 1
-        }));
+        // Fetch updated attendee counts for all sets with a single request
+        fetchAttendeeCounts(selectedDay);
         
         // If this set is currently selected and showing attendees, refresh the list
         if (selectedSet && selectedSet.id === setId) {
@@ -326,6 +325,7 @@ function SetList({ userId }) {
       setAttendees(response.data);
     } catch (error) {
       console.error('Error fetching attendees:', error);
+      setAttendees([]);
     } finally {
       setAttendeesLoading(false);
     }
@@ -409,7 +409,7 @@ function SetList({ userId }) {
   const getSetsByTime = () => {
     const setsByTime = {};
     
-    console.log('Building time-based view with timeSlots:', timeSlots);
+    // console.log('Building time-based view with timeSlots:', timeSlots);
     
     timeSlots.forEach(timeSlot => {
       // Create a Date object from the timeSlot string
@@ -422,14 +422,14 @@ function SetList({ userId }) {
                setDate.getMinutes() === timeSlotDate.getMinutes();
       });
       
-      console.log(`Sets at ${formatTimeOnly(timeSlot)}:`, setsAtTime.map(s => s.artist));
+      // console.log(`Sets at ${formatTimeOnly(timeSlot)}:`, setsAtTime.map(s => s.artist));
       
       if (setsAtTime.length > 0) {
         setsByTime[timeSlot] = setsAtTime;
       }
     });
     
-    console.log('Final setsByTime structure:', Object.keys(setsByTime).map(k => formatTimeOnly(k)));
+    // console.log('Final setsByTime structure:', Object.keys(setsByTime).map(k => formatTimeOnly(k)));
     return setsByTime;
   };
 
@@ -445,9 +445,9 @@ function SetList({ userId }) {
   // Create a compact card for mobile view
   const renderArtistCard = (set) => {
     const isArtistSelected = isSelected(set.id);
-    const friendCount = attendeeCounts[set.id] || 0;
+    const friendCount = parseInt(attendeeCounts[set.id] || 0);
 
-  return (
+    return (
       <div 
         key={set.id}
         onClick={() => handleSetClick(set)}
@@ -511,7 +511,7 @@ function SetList({ userId }) {
   // Tablet/desktop card
   const renderDesktopCard = (set) => {
     const isArtistSelected = isSelected(set.id);
-    const friendCount = attendeeCounts[set.id] || 0;
+    const friendCount = parseInt(attendeeCounts[set.id] || 0);
     
     return (
       <div 
@@ -578,6 +578,7 @@ function SetList({ userId }) {
   const renderTimeListItem = (set, attendeesCount) => {
     const isArtistSelected = isSelected(set.id);
     const stageColorClass = getStageColorClass(set.stage);
+    const friendCount = parseInt(attendeesCount);
     
     return (
       <div 
@@ -621,7 +622,7 @@ function SetList({ userId }) {
         
         <div className="flex items-center space-x-4">
           <div className="text-sm font-medium text-blue-600 whitespace-nowrap">
-            {attendeesCount} {attendeesCount === 1 ? 'friend' : 'friends'}
+            {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
           </div>
           
           <div>

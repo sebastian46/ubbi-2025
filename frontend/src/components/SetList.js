@@ -14,7 +14,6 @@ function SetList({ userId }) {
   const [attendees, setAttendees] = useState([]);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
   const [viewingUserId, setViewingUserId] = useState(null);
-  const [pendingRemoval, setPendingRemoval] = useState(null);
   const [actionFeedback, setActionFeedback] = useState(null);
   const [activeStage, setActiveStage] = useState(null);
   const [viewMode, setViewMode] = useState('stage'); // 'stage' or 'time'
@@ -114,21 +113,9 @@ function SetList({ userId }) {
     
     try {
       if (isSelected(setId)) {
-        // If we're already confirming removal for another set, reset it
-        if (pendingRemoval && pendingRemoval !== setId) {
-          setPendingRemoval(null);
-        }
-        
-        // If this is the first click on remove, show confirmation
-        if (pendingRemoval !== setId) {
-          setPendingRemoval(setId);
-          return;
-        }
-        
-        // This is the confirmation click, proceed with removal
+        // Directly remove the selection without confirmation
         await axios.delete(`${API_URL}/users/${userId}/selections/${setId}`);
         setUserSelections(userSelections.filter(selection => selection.id !== setId));
-        setPendingRemoval(null);
         setActionFeedback({
           type: 'success',
           message: 'Removed from your schedule'
@@ -145,9 +132,6 @@ function SetList({ userId }) {
           fetchAttendees(setId);
         }
       } else {
-        // Clear any pending removal
-        setPendingRemoval(null);
-        
         // Add selection
         await axios.post(`${API_URL}/selections`, { user_id: userId, set_id: setId });
         const setData = sets.find(s => s.id === setId);
@@ -177,11 +161,6 @@ function SetList({ userId }) {
     }
   };
 
-  const cancelRemoval = (event) => {
-    event.stopPropagation();
-    setPendingRemoval(null);
-  };
-
   const fetchAttendees = async (setId) => {
     setAttendeesLoading(true);
     try {
@@ -195,15 +174,9 @@ function SetList({ userId }) {
   };
 
   const handleSetClick = (set) => {
-    // Don't open modal if we have a pending removal confirmation
-    if (pendingRemoval) {
-      setPendingRemoval(null);
-      return;
-    }
-    
     // Simply open the modal with the selected set
-      setSelectedSet(set);
-      fetchAttendees(set.id);
+    setSelectedSet(set);
+    fetchAttendees(set.id);
   };
 
   const handleViewUser = (attendeeId, event) => {
@@ -300,7 +273,6 @@ function SetList({ userId }) {
 
   // Create a compact card for mobile view
   const renderArtistCard = (set) => {
-    const isConfirmingRemoval = pendingRemoval === set.id;
     const isArtistSelected = isSelected(set.id);
     const friendCount = attendeeCounts[set.id] || 0;
     
@@ -331,33 +303,16 @@ function SetList({ userId }) {
         </div>
         
         <div className="p-1 bg-white border-t border-gray-200">
-          {isConfirmingRemoval ? (
-            <div className="flex space-x-1">
-              <button
-                onClick={(e) => handleToggleSelection(set.id, e)}
-                className="flex-1 py-2 px-1 rounded text-xs bg-red-600 hover:bg-red-700 active:bg-red-800 text-white"
-              >
-                Confirm
-              </button>
-              <button
-                onClick={cancelRemoval}
-                className="flex-1 py-2 px-1 rounded text-xs bg-gray-400 hover:bg-gray-500 active:bg-gray-600 text-white"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={(e) => handleToggleSelection(set.id, e)}
-              className={`w-full py-2 rounded text-xs ${
-                isArtistSelected
-                  ? 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
-              }`}
-            >
-              {isArtistSelected ? 'Remove' : 'Add'}
-            </button>
-          )}
+          <button
+            onClick={(e) => handleToggleSelection(set.id, e)}
+            className={`w-full py-2 rounded text-xs ${
+              isArtistSelected
+                ? 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
+            }`}
+          >
+            {isArtistSelected ? 'Remove' : 'Add'}
+          </button>
         </div>
       </div>
     );
@@ -365,7 +320,6 @@ function SetList({ userId }) {
 
   // Tablet/desktop card
   const renderDesktopCard = (set) => {
-    const isConfirmingRemoval = pendingRemoval === set.id;
     const isArtistSelected = isSelected(set.id);
     const friendCount = attendeeCounts[set.id] || 0;
     
@@ -396,33 +350,16 @@ function SetList({ userId }) {
         </div>
           
         <div className="p-2 sm:p-3 bg-white border-t border-gray-200">
-          {isConfirmingRemoval ? (
-            <div className="flex space-x-2">
-              <button
-                onClick={(e) => handleToggleSelection(set.id, e)}
-                className="flex-1 py-2 rounded text-sm bg-red-600 hover:bg-red-700 active:bg-red-800 text-white"
-              >
-                Confirm Remove
-              </button>
-              <button
-                onClick={cancelRemoval}
-                className="flex-1 py-2 rounded text-sm bg-gray-400 hover:bg-gray-500 active:bg-gray-600 text-white"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={(e) => handleToggleSelection(set.id, e)}
-              className={`w-full py-2 rounded text-sm ${
-                isArtistSelected
-                  ? 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
-              }`}
-            >
-              {isArtistSelected ? 'Remove' : 'Add to My Schedule'}
-            </button>
-          )}
+          <button
+            onClick={(e) => handleToggleSelection(set.id, e)}
+            className={`w-full py-2 rounded text-sm ${
+              isArtistSelected
+                ? 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white'
+            }`}
+          >
+            {isArtistSelected ? 'Remove' : 'Add to My Schedule'}
+          </button>
         </div>
       </div>
     );

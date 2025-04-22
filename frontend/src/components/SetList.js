@@ -122,11 +122,11 @@ function SetList({ userId }) {
         setSets(cachedSetsByDay[selectedDay]);
         setUserSelections(cachedSelectionsByDay[selectedDay]);
         
-        // Set the first stage as active by default
+        // Only set the first stage as active by default if no active stage is set
         if (cachedSetsByDay[selectedDay].length > 0) {
           const stages = [...new Set(cachedSetsByDay[selectedDay].map(set => set.stage))];
           
-          if (stages.length > 0) {
+          if (stages.length > 0 && !activeStage) {
             setActiveStage(stages[0]);
           }
           
@@ -194,7 +194,10 @@ function SetList({ userId }) {
           const stages = [...new Set(sortedSets.map(set => set.stage))];
           // console.log('Unique stages:', stages);
           
-          if (stages.length > 0) {
+          // Only set the first stage as active when:
+          // 1. There's no active stage already set, or
+          // 2. The selected day has changed (we know this because we're not using cached data)
+          if (stages.length > 0 && (!activeStage || !cachedSetsByDay[selectedDay])) {
             setActiveStage(stages[0]);
           }
           
@@ -216,7 +219,7 @@ function SetList({ userId }) {
     if (!initialLoading) {
     fetchData();
     }
-  }, [selectedDay, userId, initialLoading, cachedSetsByDay, cachedSelectionsByDay]);
+  }, [selectedDay, userId, initialLoading, cachedSetsByDay, cachedSelectionsByDay, activeStage]);
 
   // Fetch attendee counts for all sets in a day with a single request
   const fetchAttendeeCounts = async (date) => {
@@ -362,6 +365,10 @@ function SetList({ userId }) {
   };
 
   const handleDaySelect = (date) => {
+    // Reset the active stage when explicitly changing days
+    // if (date !== selectedDay) {
+    //   setActiveStage(null);
+    // }
     setSelectedDay(date);
   };
 

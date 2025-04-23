@@ -75,13 +75,25 @@ function UserProfile({ userId, onBack }) {
     });
   };
 
+  // Function to truncate name if it's longer than 20 characters
+  const truncateName = (name) => {
+    if (name && name.length > 20) {
+      return name.substring(0, 20) + '...';
+    }
+    return name;
+  };
+
   if (loading) return <div className="text-center py-4">Loading user profile...</div>;
   if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
+
+  const truncatedName = truncateName(user.name);
 
   return (
     <div className="bg-white rounded-lg shadow p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-0 truncate">{user.name}'s Schedule</h2>
+        <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-0 truncate" title={user.name}>
+          {truncatedName}'s Schedule
+        </h2>
         <button 
           onClick={onBack}
           className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-200 rounded hover:bg-gray-300 active:bg-gray-400 text-sm sm:text-base"
@@ -103,7 +115,7 @@ function UserProfile({ userId, onBack }) {
 
       {userSets.length === 0 ? (
         <p className="text-sm sm:text-base text-gray-500 text-center py-4">
-          {user.name} hasn't selected any sets yet.
+          {truncatedName} hasn't selected any sets yet.
         </p>
       ) : (
         <div className="space-y-3 sm:space-y-4">

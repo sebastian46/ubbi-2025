@@ -37,9 +37,9 @@ const theme = {
     }
   },
   stages: {
-    "Ubbi’s Stage": 'bg-orange-100 text-orange-800',
+    "Ubbi's Stage": 'bg-orange-100 text-orange-800',
     "Zoom Room": 'bg-purple-100 text-purple-800',
-    "Dubbi’s Stage": 'bg-green-100 text-green-800',
+    "Dubbi's Stage": 'bg-green-100 text-green-800',
   },
   components: {
     card: {
@@ -87,6 +87,8 @@ function SetList({ userId, isVisible }) {
   const [initialLoading, setInitialLoading] = useState(true);
   const [cachedSetsByDay, setCachedSetsByDay] = useState({});
   const [cachedSelectionsByDay, setCachedSelectionsByDay] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   // Fetch festival days on initial load
   useEffect(() => {
@@ -471,6 +473,29 @@ function SetList({ userId, isVisible }) {
     };
   }, [selectedDay, fetchUserSelections, fetchAttendeeCounts]);
 
+  // Function to handle search input changes
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setIsSearching(value.trim() !== '');
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchTerm('');
+    setIsSearching(false);
+  };
+
+  // Filter sets based on search term
+  const getSearchResults = () => {
+    if (!searchTerm.trim()) return [];
+    
+    const normalizedSearch = searchTerm.toLowerCase().trim();
+    return sets.filter(set => 
+      set.artist.toLowerCase().includes(normalizedSearch)
+    );
+  };
+
   if (initialLoading) return <div className="text-center py-4">Loading festival days...</div>;
   if (loading) return <div className="text-center py-4">Loading sets...</div>;
   if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
@@ -688,6 +713,7 @@ function SetList({ userId, isVisible }) {
   const stages = getStages();
   const filteredSets = getFilteredSets();
   const setsByTime = getSetsByTime();
+  const searchResults = isSearching ? getSearchResults() : [];
 
   return (
     <div>
@@ -745,34 +771,63 @@ function SetList({ userId, isVisible }) {
             </div>
             
             {/* View toggle as pills */}
-        <div className="inline-flex rounded-md shadow-sm" role="group">
-          <button
-            onClick={() => toggleViewMode('stage')}
-            className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
-              viewMode === 'stage' 
-                ? theme.colors.primary.standard
-                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-            }`}
-          >
-            By Stage
-          </button>
-          <button
-            onClick={() => toggleViewMode('time')}
-            className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
-              viewMode === 'time' 
-                ? theme.colors.primary.standard
-                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
-            }`}
-          >
-            By Time
-          </button>
-        </div>
-      </div>
+            <div className="inline-flex rounded-md shadow-sm" role="group">
+              <button
+                onClick={() => toggleViewMode('stage')}
+                className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                  viewMode === 'stage' 
+                    ? theme.colors.primary.standard
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                }`}
+              >
+                By Stage
+              </button>
+              <button
+                onClick={() => toggleViewMode('time')}
+                className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                  viewMode === 'time' 
+                    ? theme.colors.primary.standard
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
+                }`}
+              >
+                By Time
+              </button>
+            </div>
+          </div>
+          
+          {/* Search bar */}
+          <div className="mt-3 mb-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search artists..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="w-full p-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              />
+              <div className="absolute left-3 top-2.5 text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  aria-label="Clear search"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
       
-      {/* Stage selector tabs - only show in stage view */}
-      {viewMode === 'stage' && (
+      {/* Stage selector tabs - only show in stage view and not when searching */}
+      {viewMode === 'stage' && !isSearching && (
         <div className="mb-4 overflow-x-auto">
           <div className="flex space-x-2 pb-1">
             {stages.map(stage => (
@@ -792,7 +847,144 @@ function SetList({ userId, isVisible }) {
         </div>
       )}
       
-      {sets.length === 0 ? (
+      {/* Search results */}
+      {isSearching ? (
+        <div>
+          {searchResults.length === 0 ? (
+            <div className="bg-white p-4 rounded-lg shadow text-center">
+              <p className="text-gray-500">No artists match your search.</p>
+            </div>
+          ) : (
+            <>
+              <p className="mb-3 text-sm text-gray-600">Found {searchResults.length} artist{searchResults.length !== 1 ? 's' : ''}</p>
+              
+              {/* Mobile view for search results - always show stage, time, and friend count */}
+              <div className="grid grid-cols-1 sm:hidden gap-2">
+                {searchResults.map(set => {
+                  const isArtistSelected = isSelected(set.id);
+                  const friendCount = parseInt(attendeeCounts[set.id] || 0);
+                  
+                  return (
+                    <div 
+                      key={set.id}
+                      onClick={() => handleSetClick(set)}
+                      className="bg-white rounded-lg shadow overflow-hidden cursor-pointer border border-gray-200 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex p-3">
+                        <div className="w-16 h-16 flex-shrink-0 bg-gray-200 mr-3">
+                          {set.image_url ? (
+                            <img 
+                              src={set.image_url} 
+                              alt={set.artist} 
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.onerror = null; 
+                                e.target.src = "https://via.placeholder.com/100?text=" + encodeURIComponent(set.artist.charAt(0));
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold">
+                              {set.artist.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex-grow">
+                          <h3 className="font-bold text-sm">{set.artist}</h3>
+                          <div className="text-xs text-gray-600 mt-1">
+                            <p>{set.stage}</p>
+                            <p>{formatTimeRange(set.start_time, set.end_time)}</p>
+                            <p className="text-xs text-blue-600 mt-1 font-medium">
+                              {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="ml-2 flex items-start">
+                          <button 
+                            onClick={(e) => handleToggleSelection(set.id, e)}
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              isArtistSelected
+                                ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                            }`}
+                          >
+                            {isArtistSelected ? 'Remove' : 'Add'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Desktop view for search results */}
+              <div className="hidden sm:block">
+                <div className="bg-white rounded-lg shadow overflow-hidden">
+                  <div className="divide-y divide-gray-200">
+                    {searchResults.map(set => {
+                      const isArtistSelected = isSelected(set.id);
+                      const friendCount = parseInt(attendeeCounts[set.id] || 0);
+                      
+                      return (
+                        <div 
+                          key={set.id}
+                          onClick={() => handleSetClick(set)}
+                          className="p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                        >
+                          <div className="flex items-center">
+                            {set.image_url && (
+                              <div className="w-12 h-12 mr-4 flex-shrink-0 overflow-hidden rounded-lg">
+                                <img 
+                                  src={set.image_url} 
+                                  alt={set.artist} 
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.target.onerror = null; 
+                                    e.target.src = "https://via.placeholder.com/100?text=" + encodeURIComponent(set.artist.charAt(0));
+                                  }}
+                                />
+                              </div>
+                            )}
+                            
+                            <div className="flex-grow">
+                              <h3 className="font-medium text-base">{set.artist}</h3>
+                              <div className="flex flex-wrap items-center mt-1 gap-3">
+                                <span className={`${theme.components.tag.base} ${getStageColorClass(set.stage)}`}>
+                                  {set.stage}
+                                </span>
+                                <span className="text-sm text-gray-600">
+                                  {formatTimeRange(set.start_time, set.end_time)}
+                                </span>
+                                <span className="text-sm text-blue-600 font-medium">
+                                  {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="ml-4">
+                              <button
+                                onClick={(e) => handleToggleSelection(set.id, e)}
+                                className={`px-3 py-1.5 text-sm rounded-full ${
+                                  isArtistSelected
+                                    ? "bg-red-100 text-red-600 hover:bg-red-200 active:bg-red-300"
+                                    : "bg-blue-100 text-blue-600 hover:bg-blue-200 active:bg-blue-300"
+                                } font-medium transition-colors duration-150`}
+                              >
+                                {isArtistSelected ? 'Remove' : 'Add'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      ) : sets.length === 0 ? (
         <p className="text-sm text-gray-500">No sets available for this day.</p>
       ) : viewMode === 'stage' ? (
         // Stage view
@@ -800,23 +992,23 @@ function SetList({ userId, isVisible }) {
           <p className="text-sm text-gray-500">No sets for {activeStage}.</p>
         ) : (
           <>
-                {/* Mobile view - 2 artists per row */}
-                <div className="grid grid-cols-2 gap-2 sm:hidden">
+            {/* Mobile view - 2 artists per row */}
+            <div className="grid grid-cols-2 gap-2 sm:hidden">
               {filteredSets.map(set => (
                 <div key={set.id}>
                   {renderArtistCard(set)}
                 </div>
               ))}
-                </div>
-                
-                {/* Tablet and desktop view */}
-                <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-3">
+            </div>
+            
+            {/* Tablet and desktop view */}
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-3">
               {filteredSets.map(set => (
                 <div key={set.id}>
                   {renderDesktopCard(set)}
                 </div>
               ))}
-              </div>
+            </div>
           </>
         )
       ) : (

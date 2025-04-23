@@ -15,6 +15,26 @@ function UserSelections({ userId, isVisible }) {
   const [viewingUserId, setViewingUserId] = useState(null);
   const [pendingRemoval, setPendingRemoval] = useState(null);
   const [actionFeedback, setActionFeedback] = useState(null);
+  const [festivalDays, setFestivalDays] = useState([]);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [filteredSelections, setFilteredSelections] = useState([]);
+  const [viewMode, setViewMode] = useState('time'); // 'time' or 'stage'
+  const [stageGroups, setStageGroups] = useState({});
+
+  // Function to fetch festival days
+  const fetchFestivalDays = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_URL}/festival-days`);
+      setFestivalDays(response.data);
+      
+      // Set the first day as default selected day if we don't have one yet
+      if (response.data.length > 0 && !selectedDay) {
+        setSelectedDay(response.data[0].date);
+      }
+    } catch (error) {
+      console.error('Error fetching festival days:', error);
+    }
+  }, []);
 
   // Function to fetch the most recent selections
   const fetchSelections = useCallback(async () => {
@@ -33,15 +53,37 @@ function UserSelections({ userId, isVisible }) {
 
   // Initial data fetch on component mount
   useEffect(() => {
+    fetchFestivalDays();
     fetchSelections();
-  }, [fetchSelections]);
+  }, [fetchFestivalDays, fetchSelections]);
+
+  // Filter selections based on selected day
+  useEffect(() => {
+    if (selectedDay && selections.length > 0) {
+      // Convert selectedDay to YYYY-MM-DD format for comparison
+      const selectedDateStr = selectedDay.split('T')[0];
+      
+      // Filter selections where the start_time date matches the selected day
+      const filtered = selections.filter(set => {
+        // Extract just the date part of the set's start time for comparison
+        const setDateStr = set.start_time.split('T')[0];
+        return setDateStr === selectedDateStr;
+      });
+      
+      setFilteredSelections(filtered);
+      console.log(`Filtering for date: ${selectedDateStr}, found ${filtered.length} selections`);
+    } else {
+      setFilteredSelections(selections);
+    }
+  }, [selectedDay, selections]);
 
   // Fetch when the component becomes visible (e.g., when switching tabs)
   useEffect(() => {
     if (isVisible) {
       fetchSelections();
+      fetchFestivalDays();
     }
-  }, [isVisible, fetchSelections]);
+  }, [isVisible, fetchSelections, fetchFestivalDays]);
 
   // Add event listener for visibility changes to always fetch fresh data when tab becomes visible
   useEffect(() => {
@@ -69,6 +111,44 @@ function UserSelections({ userId, isVisible }) {
       return () => clearTimeout(timer);
     }
   }, [actionFeedback]);
+
+  const handleDaySelect = (dayDate) => {
+    setSelectedDay(dayDate);
+  };
+
+  const toggleViewMode = (mode) => {
+    setViewMode(mode);
+    // When switching to stage view, organize selections by stage
+    if (mode === 'stage') {
+      organizeSelectionsByStage();
+    }
+  };
+
+  // Group selections by stage
+  const organizeSelectionsByStage = () => {
+    const groups = {};
+    
+    filteredSelections.forEach(set => {
+      if (!groups[set.stage]) {
+        groups[set.stage] = [];
+      }
+      groups[set.stage].push(set);
+    });
+    
+    // Sort sets within each stage by start time
+    Object.keys(groups).forEach(stage => {
+      groups[stage].sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+    });
+    
+    setStageGroups(groups);
+  };
+
+  // Whenever filteredSelections changes, organize by stage if in stage view
+  useEffect(() => {
+    if (viewMode === 'stage') {
+      organizeSelectionsByStage();
+    }
+  }, [filteredSelections, viewMode]);
 
   const handleRemoveSelection = async (setId) => {
     try {
@@ -161,6 +241,41 @@ function UserSelections({ userId, isVisible }) {
     });
   };
 
+  // Render festival day tabs
+  const renderDayTabs = () => {
+    if (festivalDays.length === 0) return null;
+
+    return (
+      <div className="inline-flex rounded-md shadow-sm" role="group">
+        {festivalDays.map((day, index) => {
+          // Extract just the day name (e.g., "Saturday") from the full label
+          const dayName = day.label.split(',')[0];
+          const isSelected = selectedDay === day.date;
+          const isFirst = index === 0;
+          const isLast = index === festivalDays.length - 1;
+          
+          return (
+            <button
+              key={day.date}
+              onClick={() => handleDaySelect(day.date)}
+              className={`
+                px-4 py-2 text-sm font-medium
+                ${isFirst ? 'rounded-l-lg' : ''}
+                ${isLast ? 'rounded-r-lg' : ''}
+                ${!isFirst ? 'border-l-0' : ''}
+                ${isSelected 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'}
+              `}
+            >
+              {dayName}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   if (loading) return <div className="text-center py-4">Loading your selections...</div>;
   if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
 
@@ -181,28 +296,37 @@ function UserSelections({ userId, isVisible }) {
     );
   }
 
+  // Check if filtered selections is empty for the selected day
+  const noSelectionsForDay = selectedDay && filteredSelections.length === 0;
+
   // Mobile-friendly card view
   const renderMobileCards = () => {
+    if (noSelectionsForDay) {
+      return (
+        <div className="md:hidden bg-white p-4 rounded-lg shadow text-center">
+          <p className="text-sm text-gray-600">No selections for this day.</p>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-3 md:hidden">
-        {selections.map(set => {
+        {filteredSelections.map(set => {
           const isConfirmingRemoval = pendingRemoval === set.id;
           
           return (
             <div 
               key={set.id} 
-              className="bg-white p-3 rounded-lg shadow"
+              className="bg-white p-3 rounded-lg shadow hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+              onClick={() => handleArtistClick(set)}
             >
               <div className="flex justify-between items-start mb-2">
-                <button 
-                  onClick={() => handleArtistClick(set)}
-                  className="font-medium text-blue-600 hover:text-blue-800 active:text-blue-900 focus:outline-none text-left"
-                >
+                <div className="font-medium text-blue-600">
                   {set.artist}
-                </button>
+                </div>
                 
                 {isConfirmingRemoval ? (
-                  <div className="flex space-x-1">
+                  <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => handleRemoveSelection(set.id)}
                       className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 active:bg-red-700"
@@ -218,7 +342,10 @@ function UserSelections({ userId, isVisible }) {
                   </div>
                 ) : (
                   <button
-                    onClick={() => handleRemoveSelection(set.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveSelection(set.id);
+                    }}
                     className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 active:bg-red-300"
                     aria-label="Remove"
                   >
@@ -226,9 +353,19 @@ function UserSelections({ userId, isVisible }) {
                   </button>
                 )}
               </div>
-              <div className="text-sm text-gray-500">
-                <p>{set.stage}</p>
-                <p>{formatDateTime(set.start_time)}</p>
+              <div className="flex items-center space-x-3">
+                {set.image_url && (
+                  <img 
+                    src={set.image_url} 
+                    alt={set.artist} 
+                    className="w-16 h-16 object-cover rounded"
+                    onError={(e) => e.target.style.display = 'none'}
+                  />
+                )}
+                <div className="text-sm text-gray-500">
+                  <p>{set.stage}</p>
+                  <p>{formatDateTime(set.start_time)}</p>
+                </div>
               </div>
             </div>
           );
@@ -239,6 +376,14 @@ function UserSelections({ userId, isVisible }) {
 
   // Desktop table view
   const renderDesktopTable = () => {
+    if (noSelectionsForDay) {
+      return (
+        <div className="hidden md:block bg-white p-6 rounded-lg shadow text-center">
+          <p className="text-gray-600">No selections for this day.</p>
+        </div>
+      );
+    }
+
     return (
       <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
@@ -246,6 +391,9 @@ function UserSelections({ userId, isVisible }) {
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Artist
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Image
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Stage
@@ -259,7 +407,7 @@ function UserSelections({ userId, isVisible }) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {selections.map(set => {
+            {filteredSelections.map(set => {
               const isConfirmingRemoval = pendingRemoval === set.id;
               
               return (
@@ -271,6 +419,16 @@ function UserSelections({ userId, isVisible }) {
                     >
                       {set.artist}
                     </button>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {set.image_url && (
+                      <img 
+                        src={set.image_url} 
+                        alt={set.artist} 
+                        className="w-10 h-10 object-cover rounded"
+                        onError={(e) => e.target.style.display = 'none'} 
+                      />
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">{set.stage}</div>
@@ -318,6 +476,38 @@ function UserSelections({ userId, isVisible }) {
     <div>
       <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">My Selections</h2>
       
+      {/* Navigation controls */}
+      <div className="mb-4">
+        <div className="flex flex-wrap justify-between items-center gap-2">
+          {/* Festival day tabs */}
+          {renderDayTabs()}
+          
+          {/* View toggle */}
+          <div className="inline-flex rounded-md shadow-sm" role="group">
+            <button
+              onClick={() => toggleViewMode('time')}
+              className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                viewMode === 'time' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+              }`}
+            >
+              By Time
+            </button>
+            <button
+              onClick={() => toggleViewMode('stage')}
+              className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                viewMode === 'stage' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
+              }`}
+            >
+              By Stage
+            </button>
+          </div>
+        </div>
+      </div>
+      
       {/* Action feedback toast notification */}
       {actionFeedback && (
         <div className={`fixed bottom-16 sm:bottom-4 left-0 right-0 mx-auto w-64 p-2 rounded-lg shadow-lg text-center text-white text-sm z-50 ${
@@ -338,8 +528,99 @@ function UserSelections({ userId, isVisible }) {
         />
       )}
       
-      {renderMobileCards()}
-      {renderDesktopTable()}
+      {noSelectionsForDay ? (
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow text-center">
+          <p className="text-sm sm:text-base text-gray-600">No selections for this day.</p>
+        </div>
+      ) : viewMode === 'time' ? (
+        /* Time-based view (original view) */
+        <>
+          {renderMobileCards()}
+          {renderDesktopTable()}
+        </>
+      ) : (
+        /* Stage-based view */
+        <div>
+          {Object.keys(stageGroups).length === 0 ? (
+            <div className="bg-white p-4 rounded-lg shadow text-center">
+              <p className="text-sm text-gray-600">No selections to display.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(stageGroups).map(([stage, stageSets]) => (
+                <div key={stage} className="bg-white rounded-lg shadow overflow-hidden">
+                  <div className="sticky top-0 py-3 px-4 bg-blue-600 text-white font-semibold z-10 shadow-sm">
+                    {stage}
+                  </div>
+                  
+                  <div className="divide-y divide-gray-200">
+                    {stageSets.map(set => {
+                      const isConfirmingRemoval = pendingRemoval === set.id;
+                      
+                      return (
+                        <div 
+                          key={set.id} 
+                          className="p-3 sm:p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                          onClick={() => handleArtistClick(set)}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center space-x-3">
+                              {set.image_url && (
+                                <img 
+                                  src={set.image_url} 
+                                  alt={set.artist} 
+                                  className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded"
+                                  onError={(e) => e.target.style.display = 'none'}
+                                />
+                              )}
+                              <div>
+                                <div className="font-medium text-blue-600">
+                                  {set.artist}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {formatDateTime(set.start_time)}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {isConfirmingRemoval ? (
+                              <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  onClick={() => handleRemoveSelection(set.id)}
+                                  className="text-xs bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 active:bg-red-700"
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={cancelRemoval}
+                                  className="text-xs bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400 active:bg-gray-500"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveSelection(set.id);
+                                }}
+                                className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 active:bg-red-300"
+                                aria-label="Remove"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

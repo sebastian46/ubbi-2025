@@ -71,7 +71,7 @@ function UserSelections({ userId, isVisible }) {
       });
       
       setFilteredSelections(filtered);
-      console.log(`Filtering for date: ${selectedDateStr}, found ${filtered.length} selections`);
+      // console.log(`Filtering for date: ${selectedDateStr}, found ${filtered.length} selections`);
     } else {
       setFilteredSelections(selections);
     }

@@ -229,7 +229,7 @@ function SetList({ userId, isVisible }) {
       const response = await axios.get(`${API_URL}/sets/attendee-counts`, {
         params: { date }
       });
-      console.log('Attendee counts response:', response.data);
+      // console.log('Attendee counts response:', response.data);
       setAttendeeCounts(response.data);
     } catch (error) {
       console.error('Error fetching attendee counts:', error);

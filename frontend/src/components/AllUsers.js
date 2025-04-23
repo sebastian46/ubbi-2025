@@ -16,9 +16,9 @@ function AllUsers() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        console.log('AllUsers: Fetching users from:', `${API_URL}/users`);
+        // console.log('AllUsers: Fetching users from:', `${API_URL}/users`);
         const response = await axios.get(`${API_URL}/users`);
-        console.log('AllUsers: Response received:', response.data);
+        // console.log('AllUsers: Response received:', response.data);
         setUsers(response.data);
         setLoading(false);
       } catch (error) {

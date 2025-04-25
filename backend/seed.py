@@ -36,19 +36,19 @@ def seed_data():
         db.drop_all()
         db.create_all()
         
-        # Create sample users
-        users = [
-            User(name="Alice"),
-            User(name="Bob"),
-            User(name="Charlie"),
-            User(name="David"),
-            User(name="Eva"),
-            User(name="Frank"),
-            User(name="Grace"),
-            User(name="Hannah")
-        ]
-        db.session.add_all(users)
-        db.session.commit()
+        # # Create sample users
+        # users = [
+        #     User(name="Alice"),
+        #     User(name="Bob"),
+        #     User(name="Charlie"),
+        #     User(name="David"),
+        #     User(name="Eva"),
+        #     User(name="Frank"),
+        #     User(name="Grace"),
+        #     User(name="Hannah")
+        # ]
+        # db.session.add_all(users)
+        # db.session.commit()
         
         # Read sets from CSV file
         sets = []
@@ -130,31 +130,31 @@ def seed_data():
         db.session.add_all(sets)
         db.session.commit()
         
-        # Create random user selections
-        selections = []
-        
-        # For each user, select 3-8 random sets to attend
-        for user in users:
-            # Select a random number of sets for this user
-            num_selections = random.randint(3, 8)
-            
-            # Get random sets without duplicates
-            user_sets = random.sample(sets, min(num_selections, len(sets)))
-            
-            for set_obj in user_sets:
-                selection = UserSelection(
-                    user_id=user.id,
-                    set_id=set_obj.id
-                )
-                selections.append(selection)
-        
-        db.session.add_all(selections)
-        db.session.commit()
+        # # Create random user selections
+        # selections = []
+        # 
+        # # For each user, select 3-8 random sets to attend
+        # for user in users:
+        #     # Select a random number of sets for this user
+        #     num_selections = random.randint(3, 8)
+        #     
+        #     # Get random sets without duplicates
+        #     user_sets = random.sample(sets, min(num_selections, len(sets)))
+        #     
+        #     for set_obj in user_sets:
+        #         selection = UserSelection(
+        #             user_id=user.id,
+        #             set_id=set_obj.id
+        #         )
+        #         selections.append(selection)
+        # 
+        # db.session.add_all(selections)
+        # db.session.commit()
         
         print("Database seeded successfully!")
-        print(f"Created {len(users)} users")
+        # print(f"Created {len(users)} users")
         print(f"Created {len(sets)} sets")
-        print(f"Created {len(selections)} user selections")
+        # print(f"Created {len(selections)} user selections")
 
 if __name__ == "__main__":
     seed_data() 

@@ -265,7 +265,7 @@ function UserSelections({ userId, isVisible }) {
                 ${!isFirst ? 'border-l-0' : ''}
                 ${isSelected 
                   ? 'bg-blue-600 text-white' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'}
+                  : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border dark:border-gray-600 border-gray-300'}
               `}
             >
               {dayName}
@@ -276,8 +276,8 @@ function UserSelections({ userId, isVisible }) {
     );
   };
 
-  if (loading) return <div className="text-center py-4">Loading your selections...</div>;
-  if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
+  if (loading) return <div className="text-center py-4 dark:text-gray-300">Loading your selections...</div>;
+  if (error) return <div className="text-center text-red-500 dark:text-red-400 py-4">{error}</div>;
 
   // If viewing a specific user's profile
   if (viewingUserId) {
@@ -288,9 +288,9 @@ function UserSelections({ userId, isVisible }) {
     return (
       <div>
         <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">My Selections</h2>
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow text-center">
-          <p className="text-sm sm:text-base text-gray-600">You haven't selected any sets yet.</p>
-          <p className="mt-2 text-sm sm:text-base">Go to the Festival Sets tab to select artists you want to see.</p>
+        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow text-center">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">You haven't selected any sets yet.</p>
+          <p className="mt-2 text-sm sm:text-base dark:text-gray-300">Go to the Festival Sets tab to select artists you want to see.</p>
         </div>
       </div>
     );
@@ -303,8 +303,8 @@ function UserSelections({ userId, isVisible }) {
   const renderMobileCards = () => {
     if (noSelectionsForDay) {
       return (
-        <div className="md:hidden bg-white p-4 rounded-lg shadow text-center">
-          <p className="text-sm text-gray-600">No selections for this day.</p>
+        <div className="md:hidden bg-white dark:bg-gray-800 p-4 rounded-lg shadow text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">No selections for this day.</p>
         </div>
       );
     }
@@ -317,11 +317,11 @@ function UserSelections({ userId, isVisible }) {
           return (
             <div 
               key={set.id} 
-              className="bg-white p-3 rounded-lg shadow hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+              className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150"
               onClick={() => handleArtistClick(set)}
             >
               <div className="flex justify-between items-start mb-2">
-                <div className="font-medium text-blue-600">
+                <div className="font-medium text-blue-600 dark:text-white">
                   {set.artist}
                 </div>
                 
@@ -335,7 +335,7 @@ function UserSelections({ userId, isVisible }) {
                     </button>
                     <button
                       onClick={cancelRemoval}
-                      className="text-xs bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400 active:bg-gray-500"
+                      className="text-xs bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-400 dark:hover:bg-gray-500 active:bg-gray-500 dark:active:bg-gray-400"
                     >
                       Cancel
                     </button>
@@ -346,7 +346,7 @@ function UserSelections({ userId, isVisible }) {
                       e.stopPropagation();
                       handleRemoveSelection(set.id);
                     }}
-                    className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 active:bg-red-300"
+                    className="text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 px-2 py-1 rounded hover:bg-red-200 dark:hover:bg-red-800/40 active:bg-red-300 dark:active:bg-red-700/50"
                     aria-label="Remove"
                   >
                     Remove
@@ -362,7 +362,7 @@ function UserSelections({ userId, isVisible }) {
                     onError={(e) => e.target.style.display = 'none'}
                   />
                 )}
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   <p>{set.stage}</p>
                   <p>{formatDateTime(set.start_time)}</p>
                 </div>
@@ -378,44 +378,44 @@ function UserSelections({ userId, isVisible }) {
   const renderDesktopTable = () => {
     if (noSelectionsForDay) {
       return (
-        <div className="hidden md:block bg-white p-6 rounded-lg shadow text-center">
-          <p className="text-gray-600">No selections for this day.</p>
+        <div className="hidden md:block bg-white dark:bg-gray-800 p-6 rounded-lg shadow text-center">
+          <p className="text-gray-600 dark:text-gray-400">No selections for this day.</p>
         </div>
       );
     }
 
     return (
-      <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Artist
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Image
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Stage
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Time
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {filteredSelections.map(set => {
               const isConfirmingRemoval = pendingRemoval === set.id;
               
               return (
-                <tr key={set.id}>
+                <tr key={set.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button 
                       onClick={() => handleArtistClick(set)}
-                      className="font-medium text-blue-600 hover:text-blue-800 hover:underline focus:outline-none transition-colors duration-200"
+                      className="font-medium text-blue-600 dark:text-white hover:text-blue-800 dark:hover:text-gray-200 hover:underline focus:outline-none transition-colors duration-200"
                     >
                       {set.artist}
                     </button>
@@ -431,10 +431,10 @@ function UserSelections({ userId, isVisible }) {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{set.stage}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{set.stage}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       {formatDateTime(set.start_time)}
                     </div>
                   </td>
@@ -449,7 +449,7 @@ function UserSelections({ userId, isVisible }) {
                         </button>
                         <button
                           onClick={cancelRemoval}
-                          className="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                          className="px-2 py-1 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
                         >
                           Cancel
                         </button>
@@ -457,7 +457,7 @@ function UserSelections({ userId, isVisible }) {
                     ) : (
                       <button
                         onClick={() => handleRemoveSelection(set.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                       >
                         Remove
                       </button>
@@ -489,7 +489,7 @@ function UserSelections({ userId, isVisible }) {
               className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
                 viewMode === 'time' 
                   ? 'bg-blue-600 text-white' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                  : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border dark:border-gray-600 border-gray-300'
               }`}
             >
               By Time
@@ -499,7 +499,7 @@ function UserSelections({ userId, isVisible }) {
               className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
                 viewMode === 'stage' 
                   ? 'bg-blue-600 text-white' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
+                  : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border dark:border-gray-600 border-gray-300 border-l-0'
               }`}
             >
               By Stage
@@ -511,7 +511,7 @@ function UserSelections({ userId, isVisible }) {
       {/* Action feedback toast notification */}
       {actionFeedback && (
         <div className={`fixed bottom-16 sm:bottom-4 left-0 right-0 mx-auto w-64 p-2 rounded-lg shadow-lg text-center text-white text-sm z-50 ${
-          actionFeedback.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          actionFeedback.type === 'success' ? 'bg-green-600 dark:bg-green-700' : 'bg-red-600 dark:bg-red-700'
         }`}>
           {actionFeedback.message}
         </div>
@@ -529,8 +529,8 @@ function UserSelections({ userId, isVisible }) {
       )}
       
       {noSelectionsForDay ? (
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow text-center">
-          <p className="text-sm sm:text-base text-gray-600">No selections for this day.</p>
+        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow text-center">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">No selections for this day.</p>
         </div>
       ) : viewMode === 'time' ? (
         /* Time-based view (original view) */
@@ -542,25 +542,25 @@ function UserSelections({ userId, isVisible }) {
         /* Stage-based view */
         <div>
           {Object.keys(stageGroups).length === 0 ? (
-            <div className="bg-white p-4 rounded-lg shadow text-center">
-              <p className="text-sm text-gray-600">No selections to display.</p>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">No selections to display.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {Object.entries(stageGroups).map(([stage, stageSets]) => (
-                <div key={stage} className="bg-white rounded-lg shadow overflow-hidden">
-                  <div className="sticky top-0 py-3 px-4 bg-blue-600 text-white font-semibold z-10 shadow-sm">
+                <div key={stage} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                  <div className="sticky top-0 py-3 px-4 bg-blue-600 dark:bg-blue-700 text-white font-semibold z-10 shadow-sm">
                     {stage}
                   </div>
                   
-                  <div className="divide-y divide-gray-200">
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
                     {stageSets.map(set => {
                       const isConfirmingRemoval = pendingRemoval === set.id;
                       
                       return (
                         <div 
                           key={set.id} 
-                          className="p-3 sm:p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                          className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150"
                           onClick={() => handleArtistClick(set)}
                         >
                           <div className="flex justify-between items-start mb-2">
@@ -574,10 +574,10 @@ function UserSelections({ userId, isVisible }) {
                                 />
                               )}
                               <div>
-                                <div className="font-medium text-blue-600">
+                                <div className="font-medium text-blue-600 dark:text-white">
                                   {set.artist}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                   {formatDateTime(set.start_time)}
                                 </div>
                               </div>
@@ -593,7 +593,7 @@ function UserSelections({ userId, isVisible }) {
                                 </button>
                                 <button
                                   onClick={cancelRemoval}
-                                  className="text-xs bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400 active:bg-gray-500"
+                                  className="text-xs bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-400 dark:hover:bg-gray-500 active:bg-gray-500 dark:active:bg-gray-400"
                                 >
                                   Cancel
                                 </button>
@@ -604,7 +604,7 @@ function UserSelections({ userId, isVisible }) {
                                   e.stopPropagation();
                                   handleRemoveSelection(set.id);
                                 }}
-                                className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 active:bg-red-300"
+                                className="text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 px-2 py-1 rounded hover:bg-red-200 dark:hover:bg-red-800/40 active:bg-red-300 dark:active:bg-red-700/50"
                                 aria-label="Remove"
                               >
                                 Remove

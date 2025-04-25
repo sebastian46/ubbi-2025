@@ -56,8 +56,8 @@ function AllUsers() {
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <div className="text-center py-4">Loading users...</div>;
-  if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
+  if (loading) return <div className="text-center py-4 dark:text-gray-300">Loading users...</div>;
+  if (error) return <div className="text-center text-red-500 dark:text-red-400 py-4">{error}</div>;
 
   if (selectedUserId) {
     return <UserProfile userId={selectedUserId} onBack={handleBackToList} />;
@@ -75,7 +75,7 @@ function AllUsers() {
             placeholder="Search by name..."
             value={searchTerm}
             onChange={handleSearchChange}
-            className="w-full p-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 pl-10 border dark:border-gray-700 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
           />
           <div className="absolute left-3 top-2.5 text-gray-400">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -85,7 +85,7 @@ function AllUsers() {
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               aria-label="Clear search"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -97,22 +97,22 @@ function AllUsers() {
       </div>
       
       {users.length === 0 ? (
-        <p className="text-gray-500">No users yet.</p>
+        <p className="text-gray-500 dark:text-gray-400">No users yet.</p>
       ) : filteredUsers.length === 0 ? (
-        <p className="text-gray-500">No users match your search.</p>
+        <p className="text-gray-500 dark:text-gray-400">No users match your search.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredUsers.map(user => (
             <div
               key={user.id}
-              className="bg-white rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => handleViewProfile(user.id)}
             >
               <div className="p-4">
                 <h3 className="font-medium text-lg" title={user.name}>
                   {truncateName(user.name)}
                 </h3>
-                <p className="text-sm text-blue-600 mt-2">View schedule</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">View schedule</p>
               </div>
             </div>
           ))}

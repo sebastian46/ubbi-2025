@@ -83,20 +83,20 @@ function UserProfile({ userId, onBack }) {
     return name;
   };
 
-  if (loading) return <div className="text-center py-4">Loading user profile...</div>;
+  if (loading) return <div className="text-center py-4 dark:text-gray-300">Loading user profile...</div>;
   if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
 
   const truncatedName = truncateName(user.name);
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
         <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-0 truncate" title={user.name}>
           {truncatedName}'s Schedule
         </h2>
         <button 
           onClick={onBack}
-          className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-200 rounded hover:bg-gray-300 active:bg-gray-400 text-sm sm:text-base"
+          className="px-3 py-1 sm:px-4 sm:py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 active:bg-gray-400 dark:active:bg-gray-500 rounded text-sm sm:text-base"
         >
           Back
         </button>
@@ -114,7 +114,7 @@ function UserProfile({ userId, onBack }) {
       )}
 
       {userSets.length === 0 ? (
-        <p className="text-sm sm:text-base text-gray-500 text-center py-4">
+        <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 text-center py-4">
           {truncatedName} hasn't selected any sets yet.
         </p>
       ) : (
@@ -122,12 +122,12 @@ function UserProfile({ userId, onBack }) {
           {userSets.map(set => (
             <div 
               key={set.id} 
-              className="border rounded-lg overflow-hidden cursor-pointer hover:border-blue-300 active:bg-blue-50 transition-colors"
+              className="border dark:border-gray-700 rounded-lg overflow-hidden cursor-pointer hover:border-blue-300 dark:hover:border-blue-500 active:bg-blue-50 dark:active:bg-blue-900/20 transition-colors"
               onClick={() => handleSetClick(set)}
             >
-              <div className="bg-gray-50 p-3 sm:p-4">
-                <h3 className="font-bold text-base sm:text-lg truncate text-blue-600">{set.artist}</h3>
-                <div className="text-xs sm:text-sm text-gray-600 mt-1">
+              <div className="bg-gray-50 dark:bg-gray-700 p-3 sm:p-4">
+                <h3 className="font-bold text-base sm:text-lg truncate text-blue-600 dark:text-blue-400">{set.artist}</h3>
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                   <p>Stage: {set.stage}</p>
                   <p>Time: {formatDateTime(set.start_time)}</p>
                   {set.description && <p className="mt-1 line-clamp-2">{set.description}</p>}

@@ -10,6 +10,12 @@
       content="Festival Organizer App"
     />
     <title>Festival Organizer</title>
+    <!-- Prevent flash of unstyled content by setting dark mode class early -->
+    <script>
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

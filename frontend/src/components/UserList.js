@@ -53,11 +53,11 @@ function UserList({ onSelectUser }) {
     setConfirmUser(null);
   };
 
-  if (loading) return <div className="text-center py-4">Loading users...</div>;
+  if (loading) return <div className="text-center py-4 dark:text-gray-300">Loading users...</div>;
   if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
       <h2 className="text-xl font-semibold mb-4">Select or Create Profile</h2>
       
       <form onSubmit={handleCreateUser} className="mb-6">
@@ -67,7 +67,7 @@ function UserList({ onSelectUser }) {
             value={newUserName}
             onChange={(e) => setNewUserName(e.target.value)}
             placeholder="Enter your name"
-            className="flex-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             maxLength={30}
             required
           />
@@ -82,14 +82,14 @@ function UserList({ onSelectUser }) {
       
       <h3 className="font-medium mb-2">Existing Profiles</h3>
       {users.length === 0 ? (
-        <p className="text-gray-500">No profiles yet. Create one to get started.</p>
+        <p className="text-gray-500 dark:text-gray-400">No profiles yet. Create one to get started.</p>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {users.map(user => (
             <div 
               key={user.id}
               onClick={() => handleUserClick(user)}
-              className="bg-gray-100 p-3 rounded cursor-pointer hover:bg-gray-200 transition"
+              className="bg-gray-100 dark:bg-gray-700 p-3 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition"
             >
               <p className="font-medium truncate" title={user.name}>{user.name}</p>
             </div>
@@ -100,7 +100,7 @@ function UserList({ onSelectUser }) {
       {/* Confirmation Modal */}
       {confirmUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md mx-4">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">Confirm Login</h3>
             <p className="mb-6 break-words">
               Are you sure you want to log in as <strong className="break-all">{confirmUser.name}</strong>?
@@ -108,7 +108,7 @@ function UserList({ onSelectUser }) {
             <div className="flex justify-end gap-3">
               <button 
                 onClick={handleCancelLogin}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>

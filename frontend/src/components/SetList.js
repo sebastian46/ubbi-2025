@@ -9,43 +9,43 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://ubbi.fromseb.com:5000/
 const theme = {
   colors: {
     primary: {
-      light: 'bg-blue-50',
-      medium: 'bg-blue-100 text-blue-600',
+      light: 'bg-blue-50 dark:bg-blue-900/30 dark:text-blue-200',
+      medium: 'bg-blue-100 text-blue-600 dark:bg-blue-800/50 dark:text-blue-300',
       standard: 'bg-blue-600 text-white',
       hover: 'hover:bg-blue-700',
       active: 'active:bg-blue-800',
-      border: 'border-blue-600'
+      border: 'border-blue-600 dark:border-blue-500'
     },
     secondary: {
-      light: 'bg-gray-50',
-      medium: 'bg-gray-100',
-      standard: 'bg-gray-600',
-      hover: 'hover:bg-gray-700', 
-      border: 'border-gray-200'
+      light: 'bg-gray-50 dark:bg-gray-800',
+      medium: 'bg-gray-100 dark:bg-gray-700',
+      standard: 'bg-gray-600 dark:bg-gray-500',
+      hover: 'hover:bg-gray-700 dark:hover:bg-gray-600', 
+      border: 'border-gray-200 dark:border-gray-700'
     },
     success: {
-      light: 'bg-green-100 text-green-800',
+      light: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
       standard: 'bg-green-600 text-white',
       hover: 'hover:bg-green-700'
     },
     danger: {
-      light: 'bg-red-100 text-red-600',
-      medium: 'bg-red-200',
+      light: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300',
+      medium: 'bg-red-200 dark:bg-red-800/40',
       standard: 'bg-red-500 text-white',
       hover: 'hover:bg-red-600',
       active: 'active:bg-red-700'
     }
   },
   stages: {
-    "Ubbi’s Stage": 'bg-orange-100 text-orange-800',
-    "Zoom Room": 'bg-purple-100 text-purple-800',
-    "Dubbi’s Stage": 'bg-green-100 text-green-800',
+    "Ubbi's Stage": 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+    "Zoom Room": 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+    "Dubbi's Stage": 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
   },
   components: {
     card: {
       base: 'border rounded-lg overflow-hidden shadow cursor-pointer',
-      selected: 'border-blue-500 border-2',
-      unselected: 'border-gray-200'
+      selected: 'border-blue-500 border-2 dark:border-blue-400',
+      unselected: 'border-gray-200 dark:border-gray-700'
     },
     button: {
       base: 'rounded text-white',
@@ -58,14 +58,14 @@ const theme = {
       base: 'inline-block px-2 py-0.5 rounded text-xs'
     },
     time: {
-      header: 'sticky top-0 py-3 px-4 bg-purple-900 text-white font-semibold z-10 shadow-sm'
+      header: 'sticky top-0 py-3 px-4 bg-purple-900 dark:bg-purple-950 text-white font-semibold z-10 shadow-sm'
     }
   }
 };
 
 // Helper function to get stage color classes
 const getStageColorClass = (stageName) => {
-  return theme.stages[stageName] || 'bg-gray-100 text-gray-800';
+  return theme.stages[stageName] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
 };
 
 function SetList({ userId, isVisible }) {
@@ -496,9 +496,9 @@ function SetList({ userId, isVisible }) {
     );
   };
 
-  if (initialLoading) return <div className="text-center py-4">Loading festival days...</div>;
-  if (loading) return <div className="text-center py-4">Loading sets...</div>;
-  if (error) return <div className="text-center text-red-500 py-4">{error}</div>;
+  if (initialLoading) return <div className="text-center py-4 dark:text-gray-300">Loading festival days...</div>;
+  if (loading) return <div className="text-center py-4 dark:text-gray-300">Loading sets...</div>;
+  if (error) return <div className="text-center text-red-500 dark:text-red-400 py-4">{error}</div>;
 
   // If viewing a specific user's profile
   if (viewingUserId) {
@@ -519,7 +519,7 @@ function SetList({ userId, isVisible }) {
         }`}
       >
         {/* Artist image section */}
-        <div className="h-32 relative bg-gray-200">
+        <div className="h-32 relative bg-gray-200 dark:bg-gray-700">
           {set.image_url ? (
             <img 
               src={set.image_url} 
@@ -531,7 +531,7 @@ function SetList({ userId, isVisible }) {
               }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 text-2xl font-bold">
+            <div className="w-full h-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 text-2xl font-bold">
               {set.artist.charAt(0)}
             </div>
           )}
@@ -540,22 +540,22 @@ function SetList({ userId, isVisible }) {
         <div className={theme.colors.secondary.light + " p-2 flex-grow"}>
           <h3 className="font-bold text-sm truncate">{set.artist}</h3>
           {viewMode === 'stage' ? (
-            <div className="text-xs text-gray-600 mt-1">
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
               <p className="truncate">{formatTimeRange(set.start_time, set.end_time)}</p>
               <div className="flex items-center mt-1">
-                <span className="text-xs text-blue-600 font-medium">
+                <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
                   {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
                 </span>
               </div>
             </div>
           ) : (
-            <div className="text-xs text-gray-600 mt-1">
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
               <p className="truncate">{set.stage}</p>
             </div>
           )}
         </div>
         
-        <div className="p-1 bg-white border-t border-gray-200">
+        <div className="p-1 bg-white dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
             <button 
             onClick={(e) => handleToggleSelection(set.id, e)}
             className={`w-full ${theme.components.button.small} ${
@@ -585,7 +585,7 @@ function SetList({ userId, isVisible }) {
         }`}
       >
         {/* Artist image section */}
-        <div className="h-40 relative bg-gray-200">
+        <div className="h-40 relative bg-gray-200 dark:bg-gray-700">
           {set.image_url ? (
             <img 
               src={set.image_url} 
@@ -597,7 +597,7 @@ function SetList({ userId, isVisible }) {
               }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 text-4xl font-bold">
+            <div className="w-full h-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 text-4xl font-bold">
               {set.artist.charAt(0)}
             </div>
           )}
@@ -606,22 +606,22 @@ function SetList({ userId, isVisible }) {
         <div className={theme.colors.secondary.light + " p-3 sm:p-4"}>
           <h3 className="font-bold text-base sm:text-lg truncate">{set.artist}</h3>
           {viewMode === 'stage' ? (
-            <div className="text-xs sm:text-sm text-gray-600 mt-1">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
               <p>Time: {formatTimeRange(set.start_time, set.end_time)}</p>
               <div className="flex items-center mt-2">
-                <span className="text-sm text-blue-600 font-medium">
+                <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
                   {friendCount} {friendCount === 1 ? 'friend' : 'friends'} attending
                 </span>
               </div>
             </div>
           ) : (
-            <div className="text-xs sm:text-sm text-gray-600 mt-1">
+            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
               <p>Stage: {set.stage}</p>
             </div>
           )}
         </div>
           
-        <div className="p-2 sm:p-3 bg-white border-t border-gray-200">
+        <div className="p-2 sm:p-3 bg-white dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
           <button
             onClick={(e) => handleToggleSelection(set.id, e)}
             className={`w-full ${theme.components.button.medium} ${
@@ -647,13 +647,15 @@ function SetList({ userId, isVisible }) {
       <div 
         onClick={() => handleSetClick(set)}
         className={`p-4 flex justify-between items-center cursor-pointer transition-colors duration-150 ${
-          isArtistSelected ? theme.colors.primary.light : 'hover:bg-gray-50'
+          isArtistSelected 
+            ? theme.colors.primary.light 
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
         }`}
       >
         <div className="flex items-center flex-grow">
           {/* Artist Image */}
           <div className="flex-shrink-0 mr-3">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
               {set.image_url ? (
                 <img 
                   src={set.image_url} 
@@ -665,7 +667,7 @@ function SetList({ userId, isVisible }) {
                   }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold">
+                <div className="w-full h-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 font-bold">
                   {set.artist.charAt(0)}
                 </div>
               )}
@@ -675,7 +677,7 @@ function SetList({ userId, isVisible }) {
           {/* Artist Info */}
           <div className="flex-grow">
             <div className="font-medium text-base">{set.artist}</div>
-            <div className="text-sm text-gray-600 mt-1">
+            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               <span className={`${theme.components.tag.base} ${stageColorClass}`}>
                 {set.stage}
               </span>
@@ -684,7 +686,7 @@ function SetList({ userId, isVisible }) {
         </div>
         
         <div className="flex items-center space-x-4">
-          <div className="text-sm font-medium text-blue-600 whitespace-nowrap">
+          <div className="text-sm font-medium text-blue-600 dark:text-blue-400 whitespace-nowrap">
             {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
           </div>
           
@@ -692,14 +694,14 @@ function SetList({ userId, isVisible }) {
             {isSelected(set.id) ? (
               <button
                 onClick={(e) => handleToggleSelection(set.id, e)}
-                className="px-3 py-1.5 text-xs bg-red-100 text-red-600 rounded-full hover:bg-red-200 active:bg-red-300 font-medium transition-colors duration-150"
+                className="px-3 py-1.5 text-xs bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-full hover:bg-red-200 dark:hover:bg-red-800/40 active:bg-red-300 font-medium transition-colors duration-150"
               >
                 Remove
               </button>
             ) : (
               <button
                 onClick={(e) => handleToggleSelection(set.id, e)}
-                className="px-3 py-1.5 text-xs bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 active:bg-blue-300 font-medium transition-colors duration-150"
+                className="px-3 py-1.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800/40 active:bg-blue-300 font-medium transition-colors duration-150"
               >
                 Add
               </button>
@@ -759,7 +761,7 @@ function SetList({ userId, isVisible }) {
                     } ${
                       selectedDay === day.date
                         ? theme.colors.primary.standard
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600'
                     } ${
                       festivalDays.indexOf(day) > 0 ? 'border-l-0' : ''
                     }`}
@@ -777,7 +779,7 @@ function SetList({ userId, isVisible }) {
                 className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
                   viewMode === 'stage' 
                     ? theme.colors.primary.standard
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600'
                 }`}
               >
                 By Stage
@@ -787,7 +789,7 @@ function SetList({ userId, isVisible }) {
                 className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
                   viewMode === 'time' 
                     ? theme.colors.primary.standard
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 border-l-0'
                 }`}
               >
                 By Time
@@ -803,7 +805,7 @@ function SetList({ userId, isVisible }) {
                 placeholder="Search artists..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="w-full p-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
               />
               <div className="absolute left-3 top-2.5 text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -813,7 +815,7 @@ function SetList({ userId, isVisible }) {
               {searchTerm && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   aria-label="Clear search"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -836,8 +838,8 @@ function SetList({ userId, isVisible }) {
                 onClick={() => handleStageSelect(stage)}
                 className={`px-3 py-2 text-sm whitespace-nowrap rounded-t ${
                   activeStage === stage 
-                    ? `bg-white text-blue-600 border-b-2 ${theme.colors.primary.border} font-medium shadow-sm` 
-                    : 'bg-gray-100 hover:bg-gray-200 active:bg-gray-300'
+                    ? `bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-b-2 ${theme.colors.primary.border} font-medium shadow-sm` 
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 active:bg-gray-300 dark:active:bg-gray-500'
                 }`}
               >
                 {stage}
@@ -851,12 +853,12 @@ function SetList({ userId, isVisible }) {
       {isSearching ? (
         <div>
           {searchResults.length === 0 ? (
-            <div className="bg-white p-4 rounded-lg shadow text-center">
-              <p className="text-gray-500">No artists match your search.</p>
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow text-center">
+              <p className="text-gray-500 dark:text-gray-400">No artists match your search.</p>
             </div>
           ) : (
             <>
-              <p className="mb-3 text-sm text-gray-600">Found {searchResults.length} artist{searchResults.length !== 1 ? 's' : ''}</p>
+              <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">Found {searchResults.length} artist{searchResults.length !== 1 ? 's' : ''}</p>
               
               {/* Mobile view for search results - always show stage, time, and friend count */}
               <div className="grid grid-cols-1 sm:hidden gap-2">
@@ -868,10 +870,10 @@ function SetList({ userId, isVisible }) {
                     <div 
                       key={set.id}
                       onClick={() => handleSetClick(set)}
-                      className="bg-white rounded-lg shadow overflow-hidden cursor-pointer border border-gray-200 hover:shadow-md transition-shadow"
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden cursor-pointer border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                     >
                       <div className="flex p-3">
-                        <div className="w-16 h-16 flex-shrink-0 bg-gray-200 mr-3">
+                        <div className="w-16 h-16 flex-shrink-0 bg-gray-200 dark:bg-gray-700 mr-3">
                           {set.image_url ? (
                             <img 
                               src={set.image_url} 
@@ -883,7 +885,7 @@ function SetList({ userId, isVisible }) {
                               }}
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold">
+                            <div className="w-full h-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 font-bold">
                               {set.artist.charAt(0)}
                             </div>
                           )}
@@ -891,10 +893,10 @@ function SetList({ userId, isVisible }) {
                         
                         <div className="flex-grow">
                           <h3 className="font-bold text-sm">{set.artist}</h3>
-                          <div className="text-xs text-gray-600 mt-1">
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                             <p>{set.stage}</p>
                             <p>{formatTimeRange(set.start_time, set.end_time)}</p>
-                            <p className="text-xs text-blue-600 mt-1 font-medium">
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
                               {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
                             </p>
                           </div>
@@ -905,8 +907,8 @@ function SetList({ userId, isVisible }) {
                             onClick={(e) => handleToggleSelection(set.id, e)}
                             className={`px-2 py-1 text-xs rounded-full ${
                               isArtistSelected
-                                ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                                ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/40"
+                                : "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/40"
                             }`}
                           >
                             {isArtistSelected ? 'Remove' : 'Add'}
@@ -920,8 +922,8 @@ function SetList({ userId, isVisible }) {
               
               {/* Desktop view for search results */}
               <div className="hidden sm:block">
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                  <div className="divide-y divide-gray-200">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
                     {searchResults.map(set => {
                       const isArtistSelected = isSelected(set.id);
                       const friendCount = parseInt(attendeeCounts[set.id] || 0);
@@ -930,7 +932,7 @@ function SetList({ userId, isVisible }) {
                         <div 
                           key={set.id}
                           onClick={() => handleSetClick(set)}
-                          className="p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                          className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150"
                         >
                           <div className="flex items-center">
                             {set.image_url && (
@@ -953,10 +955,10 @@ function SetList({ userId, isVisible }) {
                                 <span className={`${theme.components.tag.base} ${getStageColorClass(set.stage)}`}>
                                   {set.stage}
                                 </span>
-                                <span className="text-sm text-gray-600">
+                                <span className="text-sm text-gray-600 dark:text-gray-400">
                                   {formatTimeRange(set.start_time, set.end_time)}
                                 </span>
-                                <span className="text-sm text-blue-600 font-medium">
+                                <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
                                   {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
                                 </span>
                               </div>
@@ -967,8 +969,8 @@ function SetList({ userId, isVisible }) {
                                 onClick={(e) => handleToggleSelection(set.id, e)}
                                 className={`px-3 py-1.5 text-sm rounded-full ${
                                   isArtistSelected
-                                    ? "bg-red-100 text-red-600 hover:bg-red-200 active:bg-red-300"
-                                    : "bg-blue-100 text-blue-600 hover:bg-blue-200 active:bg-blue-300"
+                                    ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800/40 active:bg-red-300 dark:active:bg-red-700/50"
+                                    : "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/40 active:bg-blue-300 dark:active:bg-blue-700/50"
                                 } font-medium transition-colors duration-150`}
                               >
                                 {isArtistSelected ? 'Remove' : 'Add'}
@@ -985,11 +987,11 @@ function SetList({ userId, isVisible }) {
           )}
         </div>
       ) : sets.length === 0 ? (
-        <p className="text-sm text-gray-500">No sets available for this day.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No sets available for this day.</p>
       ) : viewMode === 'stage' ? (
         // Stage view
         filteredSets.length === 0 ? (
-          <p className="text-sm text-gray-500">No sets for {activeStage}.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No sets for {activeStage}.</p>
         ) : (
           <>
             {/* Mobile view - 2 artists per row */}
@@ -1015,9 +1017,9 @@ function SetList({ userId, isVisible }) {
         // Time view
         <div>
           {Object.keys(setsByTime).length === 0 ? (
-            <p className="p-4 text-sm text-gray-500">No scheduled sets found for this day.</p>
+            <p className="p-4 text-sm text-gray-500 dark:text-gray-400">No scheduled sets found for this day.</p>
           ) : (
-                <div className="bg-white rounded-lg shadow">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
               {Object.entries(setsByTime)
                 .sort(([timeA], [timeB]) => new Date(timeA) - new Date(timeB))
                 .map(([timeSlot, setsAtTime], timeIndex) => (
@@ -1025,11 +1027,11 @@ function SetList({ userId, isVisible }) {
                     <div className={theme.components.time.header}>
                       {formatTimeOnly(timeSlot)}
                       </div>
-                      <div className="border-l border-r border-gray-200 rounded-b-lg overflow-hidden">
+                      <div className="border-l border-r border-gray-200 dark:border-gray-700 rounded-b-lg overflow-hidden">
                       {setsAtTime.map((set, setIndex) => {
                           const attendeesCount = attendeeCounts[set.id] || 0;
                           return (
-                            <div key={set.id} className={setIndex > 0 ? "border-t border-gray-200" : ""}>
+                            <div key={set.id} className={setIndex > 0 ? "border-t border-gray-200 dark:border-gray-700" : ""}>
                               {renderTimeListItem(set, attendeesCount)}
                             </div>
                           );

@@ -43,14 +43,14 @@ function ArtistInfoCard({
       onClick={handleBackdropClick}
     >
       <div 
-        className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="text-lg sm:text-xl font-bold truncate pr-2">Artist Profile</h3>
           <button 
             onClick={onClose}
-            className="bg-gray-200 hover:bg-gray-300 active:bg-gray-400 w-8 h-8 rounded-full flex items-center justify-center text-gray-600 focus:outline-none"
+            className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 active:bg-gray-400 dark:active:bg-gray-500 w-8 h-8 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 focus:outline-none"
             aria-label="Close"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -59,10 +59,10 @@ function ArtistInfoCard({
           </button>
         </div>
         
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             {artistSet.image_url && (
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-200 mr-4 flex-shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 mr-4 flex-shrink-0">
                 <img 
                   src={artistSet.image_url} 
                   alt={artistSet.artist} 
@@ -76,9 +76,9 @@ function ArtistInfoCard({
             )}
             <div>
               <h4 className="text-lg font-bold">{artistSet.artist}</h4>
-              <p className="text-sm text-gray-600">Stage: {artistSet.stage}</p>
-              <p className="text-sm text-gray-600">Start: {formatDateTime(artistSet.start_time)}</p>
-              <p className="text-sm text-gray-600">End: {formatDateTime(artistSet.end_time)}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Stage: {artistSet.stage}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Start: {formatDateTime(artistSet.start_time)}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">End: {formatDateTime(artistSet.end_time)}</p>
             </div>
           </div>
           

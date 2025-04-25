@@ -34,6 +34,9 @@ function UserList({ onSelectUser }) {
       const response = await axios.post(`${API_URL}/users`, { name: newUserName });
       setUsers([...users, response.data]);
       setNewUserName('');
+      
+      // Automatically log in as the newly created user
+      onSelectUser(response.data);
     } catch (error) {
       console.error('Error creating user:', error);
       setError('Failed to create user');

@@ -37,9 +37,9 @@ const theme = {
     }
   },
   stages: {
-    "Ubbi's Stage": 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+    "Ubbi’s Stage": 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
     "Zoom Room": 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-    "Dubbi's Stage": 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    "Dubbi’s Stage": 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
   },
   components: {
     card: {
@@ -58,7 +58,7 @@ const theme = {
       base: 'inline-block px-2 py-0.5 rounded text-xs'
     },
     time: {
-      header: 'sticky top-0 py-3 px-4 bg-purple-900 dark:bg-purple-950 text-white font-semibold z-10 shadow-sm'
+      header: 'sticky top-0 py-3 px-4 bg-blue-600 dark:bg-blue-800 text-white font-semibold z-10 shadow-sm'
     }
   }
 };

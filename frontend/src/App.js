@@ -117,7 +117,7 @@ function App() {
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                 }`}
               >
-                Festival Sets
+                All Sets
               </button>
               <button
                 onClick={() => setActiveTab('mySelections')}
@@ -137,7 +137,7 @@ function App() {
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                 }`}
               >
-                All Attendees
+                All Friends
               </button>
             </div>
             
@@ -172,7 +172,7 @@ function App() {
                       : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 dark:text-gray-200'
                   }`}
                 >
-                  All Attendees
+                  All Friends
                 </button>
               </div>
             </div>
@@ -218,7 +218,7 @@ function App() {
               activeTab === 'allUsers' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'
             }`}
           >
-            All Attendees
+            All Friends
           </button>
         </div>
       )}

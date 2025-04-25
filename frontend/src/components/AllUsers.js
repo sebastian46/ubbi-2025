@@ -65,7 +65,7 @@ function AllUsers() {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4">All Festival Attendees</h2>
+      <h2 className="text-xl font-semibold mb-4">All Friends</h2>
       
       {/* Search bar */}
       <div className="mb-4">

@@ -35,7 +35,7 @@ function UserSelections({ userId, isVisible }) {
     } catch (error) {
       console.error('Error fetching festival days:', error);
     }
-  }, []);
+  }, [selectedDay]);
 
   // Function to fetch attendee counts for all sets
   const fetchAttendeeCounts = useCallback(async (date) => {

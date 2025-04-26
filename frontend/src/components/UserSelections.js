@@ -20,6 +20,7 @@ function UserSelections({ userId, isVisible }) {
   const [filteredSelections, setFilteredSelections] = useState([]);
   const [viewMode, setViewMode] = useState('time'); // 'time' or 'stage'
   const [stageGroups, setStageGroups] = useState({});
+  const [attendeeCounts, setAttendeeCounts] = useState({});
 
   // Function to fetch festival days
   const fetchFestivalDays = useCallback(async () => {
@@ -33,6 +34,21 @@ function UserSelections({ userId, isVisible }) {
       }
     } catch (error) {
       console.error('Error fetching festival days:', error);
+    }
+  }, []);
+
+  // Function to fetch attendee counts for all sets
+  const fetchAttendeeCounts = useCallback(async (date) => {
+    if (!date) return;
+    
+    try {
+      const response = await axios.get(`${API_URL}/sets/attendee-counts`, {
+        params: { date }
+      });
+      setAttendeeCounts(response.data);
+    } catch (error) {
+      console.error('Error fetching attendee counts:', error);
+      setAttendeeCounts({});
     }
   }, []);
 
@@ -71,25 +87,32 @@ function UserSelections({ userId, isVisible }) {
       });
       
       setFilteredSelections(filtered);
-      // console.log(`Filtering for date: ${selectedDateStr}, found ${filtered.length} selections`);
+      // Fetch attendee counts for the selected day
+      fetchAttendeeCounts(selectedDay);
     } else {
       setFilteredSelections(selections);
     }
-  }, [selectedDay, selections]);
+  }, [selectedDay, selections, fetchAttendeeCounts]);
 
   // Fetch when the component becomes visible (e.g., when switching tabs)
   useEffect(() => {
     if (isVisible) {
       fetchSelections();
       fetchFestivalDays();
+      if (selectedDay) {
+        fetchAttendeeCounts(selectedDay);
+      }
     }
-  }, [isVisible, fetchSelections, fetchFestivalDays]);
+  }, [isVisible, fetchSelections, fetchFestivalDays, selectedDay, fetchAttendeeCounts]);
 
   // Add event listener for visibility changes to always fetch fresh data when tab becomes visible
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         fetchSelections();
+        if (selectedDay) {
+          fetchAttendeeCounts(selectedDay);
+        }
       }
     };
 
@@ -99,7 +122,7 @@ function UserSelections({ userId, isVisible }) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [fetchSelections]);
+  }, [fetchSelections, selectedDay, fetchAttendeeCounts]);
 
   // Clear feedback message after 3 seconds
   useEffect(() => {
@@ -313,6 +336,7 @@ function UserSelections({ userId, isVisible }) {
       <div className="space-y-3 md:hidden">
         {filteredSelections.map(set => {
           const isConfirmingRemoval = pendingRemoval === set.id;
+          const friendCount = parseInt(attendeeCounts[set.id] || 0);
           
           return (
             <div 
@@ -365,6 +389,9 @@ function UserSelections({ userId, isVisible }) {
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   <p>{set.stage}</p>
                   <p>{formatDateTime(set.start_time)}</p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">
+                    {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -402,6 +429,9 @@ function UserSelections({ userId, isVisible }) {
                 Time
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Friends
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -409,6 +439,7 @@ function UserSelections({ userId, isVisible }) {
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {filteredSelections.map(set => {
               const isConfirmingRemoval = pendingRemoval === set.id;
+              const friendCount = parseInt(attendeeCounts[set.id] || 0);
               
               return (
                 <tr key={set.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -436,6 +467,11 @@ function UserSelections({ userId, isVisible }) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       {formatDateTime(set.start_time)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                      {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -549,13 +585,14 @@ function UserSelections({ userId, isVisible }) {
             <div className="space-y-4">
               {Object.entries(stageGroups).map(([stage, stageSets]) => (
                 <div key={stage} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-                  <div className="sticky top-0 py-3 px-4 bg-blue-600 dark:bg-blue-700 text-white font-semibold z-10 shadow-sm">
+                  <div className="sticky top-0 py-3 px-4 bg-blue-600 dark:bg-blue-800 text-white font-semibold z-10 shadow-sm">
                     {stage}
                   </div>
                   
                   <div className="divide-y divide-gray-200 dark:divide-gray-700">
                     {stageSets.map(set => {
                       const isConfirmingRemoval = pendingRemoval === set.id;
+                      const friendCount = parseInt(attendeeCounts[set.id] || 0);
                       
                       return (
                         <div 
@@ -579,6 +616,9 @@ function UserSelections({ userId, isVisible }) {
                                 </div>
                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                   {formatDateTime(set.start_time)}
+                                </div>
+                                <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mt-1">
+                                  {friendCount} {friendCount === 1 ? 'friend' : 'friends'}
                                 </div>
                               </div>
                             </div>

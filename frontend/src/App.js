@@ -5,7 +5,11 @@ import UserSelections from './components/UserSelections';
 import AllUsers from './components/AllUsers';
 
 function App() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    // Initialize from localStorage if available
+    const savedUser = localStorage.getItem('currentUser');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [activeTab, setActiveTab] = useState('sets');
   const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -18,6 +22,15 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [darkMode]);
+  
+  // Save user to localStorage when it changes
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('currentUser');
+    }
+  }, [currentUser]);
   
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -36,6 +49,11 @@ function App() {
   
   const cancelLogout = () => {
     setShowLogoutConfirm(false);
+  };
+  
+  // Handle setting the current user including persisting it
+  const handleSelectUser = (user) => {
+    setCurrentUser(user);
   };
   
   return (
@@ -103,7 +121,7 @@ function App() {
       <main className="container mx-auto p-3 sm:p-4">
         {!currentUser ? (
           <div className="max-w-md mx-auto mt-4 sm:mt-8">
-            <UserList onSelectUser={setCurrentUser} />
+            <UserList onSelectUser={handleSelectUser} />
           </div>
         ) : (
           <div className="mt-2 sm:mt-4">
